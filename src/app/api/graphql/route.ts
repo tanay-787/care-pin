@@ -1,16 +1,17 @@
 // file: app/api/graphql/route.ts
+
 import { createYoga } from 'graphql-yoga';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { PrismaClient } from '@/generated/prisma/client';
 
-// Edge Case Best Practice:
-// Instantiate Prisma Client outside the request handler. This prevents
-// creating a new database connection on every single API call, which is
-// crucial for performance and avoiding connection limits.
-const prisma = new PrismaClient();
+// --- CHANGE HERE ---
+// 1. Remove the old Prisma Client import
+// import { PrismaClient } from '@prisma/client';
 
-// 1. Define your GraphQL Schema (the 'what')
-// This is the contract for your API. It tells clients what queries they can make.
+// 2. Import your new singleton Prisma Client instance
+import prisma from '@/lib/prisma';
+// --------------------
+
+// No changes needed here
 const typeDefs = /* GraphQL */ `
   type User {
     id: String!
@@ -20,42 +21,36 @@ const typeDefs = /* GraphQL */ `
   }
 
   type Query {
-    """
-    Retrieves all users from the database.
-    """
     users: [User!]!
   }
 `;
 
-// 2. Define your Resolvers (the 'how')
-// These are the functions that fetch the data for your schema.
-// The 'context' parameter will give us access to our Prisma instance.
+// No changes needed here
 const resolvers = {
   Query: {
-    users: (parent: unknown, args: {}, context: { prisma: PrismaClient }) => {
+    // The context will now automatically be typed correctly if you've set up your project well
+    users: (parent: unknown, args: {}, context: { prisma: typeof prisma }) => {
       return context.prisma.user.findMany();
     },
   },
 };
 
-// 3. Create the Executable Schema
-// This combines your type definitions and resolvers into a single, usable schema.
+// --- REMOVED LINE ---
+// We no longer instantiate Prisma here.
+// const prisma = new PrismaClient();
+// --------------------
+
 const schema = makeExecutableSchema({
   typeDefs,
   resolvers,
 });
 
-// 4. Create the Yoga server instance
 const { handleRequest } = createYoga({
   schema,
-  graphqlEndpoint: '/api/graphql', // The endpoint path
-  fetchAPI: { Response }, // Use the native Response object
-  // The context is a value passed to all resolvers. We use it to
-  // inject our Prisma Client, making it available for database operations.
+  graphqlEndpoint: '/api/graphql',
+  fetchAPI: { Response },
+  // The context now simply passes the imported prisma instance.
   context: () => ({ prisma }),
 });
 
-// 5. Export the request handler for Next.js App Router
-// This connects Yoga to Next.js, allowing it to handle GET (for the GraphiQL IDE)
-// and POST (for actual GraphQL queries) requests.
 export { handleRequest as GET, handleRequest as POST };
