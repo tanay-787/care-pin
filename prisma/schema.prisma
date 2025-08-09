@@ -9,16 +9,16 @@ datasource db {
   url       = env("DATABASE_URL")
 }
 
+// file: prisma/schema.prisma
+
 model User {
-  id    String  @id @default(cuid()) // Using CUIDs is a modern best practice for IDs
+  id    String  @id
   email String  @unique
   name  String?
   role  Role    @default(CAREWORKER)
-  // Future relation to shifts can be added here
 }
 
 enum Role {
   MANAGER
   CAREWORKER
 }
-
