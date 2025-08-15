@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -9,16 +8,66 @@ datasource db {
   url       = env("DATABASE_URL")
 }
 
-// file: prisma/schema.prisma
-
 model User {
-  id    String  @id
-  email String  @unique
-  name  String?
-  role  Role    @default(CAREWORKER)
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(CARE_WORKER)
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  shifts    Shift[]
+  locationPerimetersUpdated LocationPerimeter[] @relation("UpdatedBy")
+  
+  @@map("users")
 }
 
-enum Role {
+model Shift {
+  id                 String      @id @default(cuid())
+  userId             String
+  clockInTime        DateTime
+  clockOutTime       DateTime?
+  clockInLatitude    Float?
+  clockInLongitude   Float?
+  clockOutLatitude   Float?
+  clockOutLongitude  Float?
+  notes              String?
+  status             ShiftStatus @default(CLOCKED_IN)
+  duration           Int?        // Duration in minutes
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  
+  // Relations
+  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("shifts")
+}
+
+model LocationPerimeter {
+  id              String   @id @default(cuid())
+  centerLatitude  Float
+  centerLongitude Float
+  radiusKm        Float    @default(2.0)
+  address         String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  updatedById     String?
+  
+  // Relations
+  updatedBy       User?    @relation("UpdatedBy", fields: [updatedById], references: [id])
+  
+  @@map("location_perimeters")
+}
+
+enum UserRole {
   MANAGER
-  CAREWORKER
+  CARE_WORKER
+}
+
+enum ShiftStatus {
+  CLOCKED_IN
+  CLOCKED_OUT
 }

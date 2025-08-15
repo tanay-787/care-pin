@@ -1,6 +1,6 @@
 // file: lib/prisma.ts
 
-import { PrismaClient } from '@/generated/prisma/client'; // <-- Your working import is correct.
+import { PrismaClient } from '@prisma/client'; // <-- Your working import is correct.
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';

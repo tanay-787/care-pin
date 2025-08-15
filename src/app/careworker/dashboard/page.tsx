@@ -2,12 +2,12 @@
 "use client";
 import React, { useState } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import AnalyticsCards from "@/components/common/AnalyticsCards";
-import ClockStatusCard from "@/components/careworker/ClockStatusCard";
-import ClockButton from "@/components/careworker/ClockButton";
-import ShiftHistoryTable, { ShiftRecord } from "@/components/careworker/ShiftHistoryTable";
-import NoteModal from "@/components/common/NoteModal";
-import ResultOverlay from "@/components/common/ResultOverlay";
+import AnalyticsCards from "@/components/old/common/AnalyticsCards";
+import ClockStatusCard from "@/components/old/careworker/ClockStatusCard";
+import ClockButton from "@/components/old/careworker/ClockButton";
+import ShiftHistoryTable, { ShiftRecord } from "@/components/old/careworker/ShiftHistoryTable";
+import NoteModal from "@/components/old/common/NoteModal";
+import ResultOverlay from "@/components/old/common/ResultOverlay";
 
 export default function CareWorkerDashboardPage() {
   // Mock state

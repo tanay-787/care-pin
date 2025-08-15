@@ -4,7 +4,7 @@ import React from "react";
 import { Table, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
-interface StaffRecord {
+export interface StaffRecord {
   key: string;
   name: string;
   clockIn: string;

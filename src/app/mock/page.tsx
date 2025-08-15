@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useMutation, useQuery } from "@apollo/client"
 import {
   Card,
   Form,
   Input,
+  InputNumber,
   Button,
   Select,
   Typography,
@@ -18,13 +20,11 @@ import {
   Statistic,
   Table,
   Tabs,
-  DatePicker,
+  Tooltip,
   ConfigProvider,
   Divider,
   Switch,
-  Slider,
-  Timeline,
-  Tooltip,
+  Spin,
 } from "antd"
 import {
   UserOutlined,
@@ -38,15 +38,23 @@ import {
   TeamOutlined,
   BarChartOutlined,
   HistoryOutlined,
-  SaveOutlined,
-  DownloadOutlined,
 } from "@ant-design/icons"
+
+import {
+  LOGIN_USER,
+  REGISTER_USER,
+  CLOCK_IN,
+  CLOCK_OUT,
+  GET_USER_SHIFTS,
+  GET_LOCATION_PERIMETER,
+  GET_ALL_USERS,
+  GET_ALL_SHIFTS,
+  UPDATE_LOCATION_PERIMETER,
+} from "@/lib/graphql-queries"
 
 const { Title, Text, Paragraph } = Typography
 const { Option } = Select
-const { TextArea } = Input
 const { TabPane } = Tabs
-const { RangePicker } = DatePicker
 
 const appTheme = {
   token: {
@@ -64,12 +72,13 @@ const appTheme = {
   },
 }
 
-// Mock user data
-const mockUsers = [
-  { id: 1, username: "manager1", password: "password", role: "manager", name: "John Manager" },
-  { id: 2, username: "worker1", password: "password", role: "worker", name: "Jane Worker" },
-  { id: 3, username: "worker2", password: "password", role: "worker", name: "Bob Worker" },
-]
+interface User {
+  id: string
+  email: string
+  name: string
+  role: "MANAGER" | "WORKER"
+  token?: string
+}
 
 // Mock location data (simulating GPS)
 const mockLocation = {
@@ -88,6 +97,13 @@ const allowedPerimeter: PerimeterSettings = {
   lastModified: new Date(),
   modifiedBy: "John Manager",
 }
+
+// Mock user data
+const mockUsers: User[] = [
+  { id: "1", email: "manager1@example.com", name: "John Manager", role: "MANAGER" },
+  { id: "2", email: "worker1@example.com", name: "Jane Worker", role: "WORKER" },
+  { id: "3", email: "worker2@example.com", name: "Bob Worker", role: "WORKER" },
+]
 
 // Enhanced mock shift data with more historical records for analytics
 const mockShifts: Shift[] = [
@@ -141,13 +157,6 @@ const mockShifts: Shift[] = [
   },
 ]
 
-interface User {
-  id: number
-  username: string
-  role: "manager" | "worker"
-  name: string
-}
-
 interface Shift {
   id: number
   workerId: number
@@ -159,7 +168,6 @@ interface Shift {
   clockInNote: string
   clockOutNote?: string
   status: "clocked-in" | "clocked-out"
-  duration?: number
 }
 
 interface PerimeterSettings {
@@ -172,27 +180,40 @@ interface PerimeterSettings {
   modifiedBy: string
 }
 
-const ManagerDashboard = ({ user }: { user: User }) => {
+const ManagerDashboard = ({ user, onLogout }: { user: User; onLogout: () => void }) => {
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null)
-  const [perimeterSettings, setPerimeterSettings] = useState({
+
+  // GraphQL queries and mutations
+  const { data: usersData, loading: usersLoading } = useQuery(GET_ALL_USERS)
+  const { data: shiftsData, loading: shiftsLoading } = useQuery(GET_ALL_SHIFTS)
+  const { data: perimeterData, loading: perimeterLoading } = useQuery(GET_LOCATION_PERIMETER)
+  const [updatePerimeter] = useMutation(UPDATE_LOCATION_PERIMETER)
+
+  const allUsers = usersData?.users || []
+  const allShifts = shiftsData?.shifts || []
+  const perimeterSettings = perimeterData?.locationPerimeter || {
     enabled: true,
     radius: 2,
     centerAddress: "123 Healthcare Center, Medical District",
     centerLat: 40.7128,
     centerLng: -74.006,
-  })
+  }
 
-  // Mock data for manager dashboard
-  const currentlyWorking = mockUsers.filter((u) => u.role === "worker" && u.currentShift)
-  const totalWorkers = mockUsers.filter((u) => u.role === "worker").length
-  const todayShifts = mockShifts.filter((shift) => {
-    const today = new Date().toDateString()
+  // Calculate statistics from real data
+  const workers = allUsers.filter((u: any) => u.role === "WORKER")
+  const currentlyWorking = workers.filter((worker: any) =>
+    allShifts.some((shift: any) => shift.userId === worker.id && !shift.clockOutTime),
+  )
+  const totalWorkers = workers.length
+
+  const today = new Date().toDateString()
+  const todayShifts = allShifts.filter((shift: any) => {
     return new Date(shift.clockInTime).toDateString() === today
   })
 
   const avgHoursPerDay =
-    todayShifts.reduce((acc, shift) => {
+    todayShifts.reduce((acc: number, shift: any) => {
       if (shift.clockOutTime) {
         const hours =
           (new Date(shift.clockOutTime).getTime() - new Date(shift.clockInTime).getTime()) / (1000 * 60 * 60)
@@ -206,9 +227,33 @@ const ManagerDashboard = ({ user }: { user: User }) => {
     setActiveTab("logs")
   }
 
-  const handleUpdatePerimeter = (newSettings: any) => {
-    setPerimeterSettings(newSettings)
-    message.success("Perimeter settings updated successfully")
+  const handleUpdatePerimeter = async (values: any) => {
+    try {
+      await updatePerimeter({
+        variables: {
+          input: {
+            enabled: values.enabled,
+            radius: values.radius,
+            centerAddress: values.centerAddress,
+            centerLat: perimeterSettings.centerLat,
+            centerLng: perimeterSettings.centerLng,
+          },
+        },
+        refetchQueries: [{ query: GET_LOCATION_PERIMETER }],
+      })
+      message.success("Perimeter settings updated successfully")
+    } catch (error) {
+      message.error("Failed to update perimeter settings")
+    }
+  }
+
+  if (usersLoading || shiftsLoading || perimeterLoading) {
+    return (
+      <div style={{ padding: "24px", textAlign: "center" }}>
+        <Spin size="large" />
+        <div style={{ marginTop: 16 }}>Loading dashboard...</div>
+      </div>
+    )
   }
 
   const tabItems = [
@@ -263,7 +308,10 @@ const ManagerDashboard = ({ user }: { user: User }) => {
 
           <Card title="Currently Working Staff" style={{ marginBottom: 24 }}>
             <Table
-              dataSource={currentlyWorking}
+              dataSource={currentlyWorking.map((worker: any) => {
+                const currentShift = allShifts.find((shift: any) => shift.userId === worker.id && !shift.clockOutTime)
+                return { ...worker, currentShift }
+              })}
               rowKey="id"
               pagination={false}
               columns={[
@@ -281,7 +329,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                 {
                   title: "Clock In Time",
                   key: "clockIn",
-                  render: (_, record: User) => {
+                  render: (_, record: any) => {
                     if (record.currentShift) {
                       return new Date(record.currentShift.clockInTime).toLocaleTimeString()
                     }
@@ -291,7 +339,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                 {
                   title: "Duration",
                   key: "duration",
-                  render: (_, record: User) => {
+                  render: (_, record: any) => {
                     if (record.currentShift) {
                       const duration = Date.now() - new Date(record.currentShift.clockInTime).getTime()
                       const hours = Math.floor(duration / (1000 * 60 * 60))
@@ -304,11 +352,11 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                 {
                   title: "Location",
                   key: "location",
-                  render: (_, record: User) => {
+                  render: (_, record: any) => {
                     if (record.currentShift?.clockInLocation) {
                       return (
                         <Tooltip title={`${record.currentShift.clockInLocation}`}>
-                          <Tag color="blue">Within Perimeter</Tag>
+                          <Tag color="green">Within Perimeter</Tag>
                         </Tooltip>
                       )
                     }
@@ -318,8 +366,8 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                 {
                   title: "Actions",
                   key: "actions",
-                  render: (_, record: User) => (
-                    <Button type="link" size="small" onClick={() => handleViewWorkerLogs(record.id.toString())}>
+                  render: (_, record: any) => (
+                    <Button type="link" size="small" onClick={() => handleViewWorkerLogs(record.id)}>
                       View Logs
                     </Button>
                   ),
@@ -336,7 +384,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
       children: (
         <Card title="Staff Management">
           <Table
-            dataSource={mockUsers.filter((u) => u.role === "worker")}
+            dataSource={workers}
             rowKey="id"
             columns={[
               {
@@ -353,39 +401,19 @@ const ManagerDashboard = ({ user }: { user: User }) => {
               {
                 title: "Status",
                 key: "status",
-                render: (_, record: User) =>
-                  record.currentShift ? <Tag color="green">Working</Tag> : <Tag color="default">Off Duty</Tag>,
-              },
-              {
-                title: "This Week Hours",
-                key: "weekHours",
-                render: (_, record: User) => {
-                  const weekShifts = mockShifts.filter((shift) => {
-                    const shiftDate = new Date(shift.clockInTime)
-                    const weekAgo = new Date()
-                    weekAgo.setDate(weekAgo.getDate() - 7)
-                    return shift.workerId === record.id && shiftDate >= weekAgo && shift.clockOutTime
-                  })
-
-                  const totalHours = weekShifts.reduce((acc, shift) => {
-                    if (shift.clockOutTime) {
-                      const hours =
-                        (new Date(shift.clockOutTime).getTime() - new Date(shift.clockInTime).getTime()) /
-                        (1000 * 60 * 60)
-                      return acc + hours
-                    }
-                    return acc
-                  }, 0)
-
-                  return `${totalHours.toFixed(1)}h`
+                render: (_, record: any) => {
+                  const hasActiveShift = allShifts.some(
+                    (shift: any) => shift.userId === record.id && !shift.clockOutTime,
+                  )
+                  return hasActiveShift ? <Tag color="green">Working</Tag> : <Tag color="default">Off Duty</Tag>
                 },
               },
               {
                 title: "Actions",
                 key: "actions",
-                render: (_, record: User) => (
+                render: (_, record: any) => (
                   <Space>
-                    <Button type="link" size="small" onClick={() => handleViewWorkerLogs(record.id.toString())}>
+                    <Button type="link" size="small" onClick={() => handleViewWorkerLogs(record.id)}>
                       View Logs
                     </Button>
                     <Button type="link" size="small" danger>
@@ -424,17 +452,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                   label="Allowed Radius (km)"
                   rules={[{ required: true, message: "Please set radius" }]}
                 >
-                  <Slider
-                    min={0.1}
-                    max={50}
-                    step={0.1}
-                    marks={{
-                      0.1: "0.1km",
-                      2: "2km",
-                      10: "10km",
-                      50: "50km",
-                    }}
-                  />
+                  <InputNumber min={0.1} max={50} step={0.1} />
                 </Form.Item>
               </Col>
 
@@ -456,26 +474,11 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                     <Text type="secondary">Workers can only clock in/out within this perimeter</Text>
                   </Space>
                 </Card>
-
-                <Card size="small" title="Recent Changes" style={{ marginTop: 16 }}>
-                  <Timeline size="small">
-                    <Timeline.Item color="green">
-                      <Text type="secondary">Today 2:30 PM</Text>
-                      <br />
-                      Radius updated to 2km by {user.name}
-                    </Timeline.Item>
-                    <Timeline.Item color="blue">
-                      <Text type="secondary">Yesterday 9:15 AM</Text>
-                      <br />
-                      Location restrictions enabled
-                    </Timeline.Item>
-                  </Timeline>
-                </Card>
               </Col>
             </Row>
 
             <Form.Item>
-              <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
+              <Button type="primary" htmlType="submit">
                 Save Perimeter Settings
               </Button>
             </Form.Item>
@@ -497,23 +500,17 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                 value={selectedWorker}
                 onChange={setSelectedWorker}
               >
-                {mockUsers
-                  .filter((u) => u.role === "worker")
-                  .map((worker) => (
-                    <Select.Option key={worker.id} value={worker.id.toString()}>
-                      {worker.name}
-                    </Select.Option>
-                  ))}
+                {workers.map((worker: any) => (
+                  <Select.Option key={worker.id} value={worker.id}>
+                    {worker.name}
+                  </Select.Option>
+                ))}
               </Select>
-              <RangePicker />
-              <Button icon={<DownloadOutlined />}>Export</Button>
             </Space>
 
             <Table
               dataSource={
-                selectedWorker
-                  ? mockShifts.filter((shift) => shift.workerId === Number.parseInt(selectedWorker))
-                  : mockShifts
+                selectedWorker ? allShifts.filter((shift: any) => shift.userId === selectedWorker) : allShifts
               }
               rowKey="id"
               pagination={{ pageSize: 10 }}
@@ -521,8 +518,8 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                 {
                   title: "Worker",
                   key: "worker",
-                  render: (_, record: Shift) => {
-                    const worker = mockUsers.find((u) => u.id === record.workerId)
+                  render: (_, record: any) => {
+                    const worker = allUsers.find((u: any) => u.id === record.userId)
                     return <Text strong>{worker?.name}</Text>
                   },
                 },
@@ -530,7 +527,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                   title: "Clock In",
                   dataIndex: "clockInTime",
                   key: "clockIn",
-                  render: (time: Date) => (
+                  render: (time: string) => (
                     <div>
                       <div>{new Date(time).toLocaleDateString()}</div>
                       <Text type="secondary">{new Date(time).toLocaleTimeString()}</Text>
@@ -541,7 +538,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                   title: "Clock Out",
                   dataIndex: "clockOutTime",
                   key: "clockOut",
-                  render: (time: Date | null) =>
+                  render: (time: string | null) =>
                     time ? (
                       <div>
                         <div>{new Date(time).toLocaleDateString()}</div>
@@ -554,7 +551,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                 {
                   title: "Duration",
                   key: "duration",
-                  render: (_, record: Shift) => {
+                  render: (_, record: any) => {
                     if (record.clockOutTime) {
                       const duration = new Date(record.clockOutTime).getTime() - new Date(record.clockInTime).getTime()
                       const hours = Math.floor(duration / (1000 * 60 * 60))
@@ -570,11 +567,11 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                 {
                   title: "Location",
                   key: "location",
-                  render: (_, record: Shift) => {
+                  render: (_, record: any) => {
                     if (record.clockInLocation) {
                       return (
                         <Tooltip title={`${record.clockInLocation}`}>
-                          <Tag color="blue">Valid</Tag>
+                          <Tag color="green">Valid</Tag>
                         </Tooltip>
                       )
                     } else {
@@ -613,12 +610,15 @@ const ManagerDashboard = ({ user }: { user: User }) => {
       </div>
 
       <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} size="large" />
+      <Button onClick={onLogout} style={{ marginTop: 16 }}>
+        Logout
+      </Button>
     </div>
   )
 }
 
-const WorkerDashboard = ({ user }: { user: User }) => {
-  const [currentShift, setCurrentShift] = useState<Shift | null>(null)
+const WorkerDashboard = ({ user, onLogout }: { user: User; onLogout: () => void }) => {
+  const [currentShift, setCurrentShift] = useState<any>(null)
   const [location, setLocation] = useState<any>(null)
   const [locationLoading, setLocationLoading] = useState(false)
   const [clockLoading, setClockLoading] = useState(false)
@@ -627,17 +627,82 @@ const WorkerDashboard = ({ user }: { user: User }) => {
   const [note, setNote] = useState("")
   const [activeTab, setActiveTab] = useState("dashboard")
 
+  const {
+    data: shiftsData,
+    loading: shiftsLoading,
+    refetch: refetchShifts,
+  } = useQuery(GET_USER_SHIFTS, {
+    variables: { userId: user.id },
+    pollInterval: 30000, // Poll every 30 seconds for real-time updates
+  })
+
+  const { data: perimeterData, loading: perimeterLoading } = useQuery(GET_LOCATION_PERIMETER, {
+    pollInterval: 60000, // Poll every minute for perimeter updates
+  })
+
+  const [clockInMutation] = useMutation(CLOCK_IN, {
+    onCompleted: (data: { clockIn: any }) => {
+      setCurrentShift(data.clockIn)
+      message.success("Successfully clocked in!")
+      refetchShifts()
+    },
+    onError: (error: { message: any }) => {
+      message.error(error.message || "Failed to clock in")
+    },
+  })
+
+  const [clockOutMutation] = useMutation(CLOCK_OUT, {
+    onCompleted: (data: any) => {
+      setCurrentShift(null)
+      message.success("Successfully clocked out!")
+      refetchShifts()
+    },
+    onError: (error: { message: any }) => {
+      message.error(error.message || "Failed to clock out")
+    },
+  })
+
   useEffect(() => {
-    // Find current active shift for this worker
-    const activeShift = mockShifts.find((shift) => shift.workerId === user.id && shift.status === "clocked-in")
-    setCurrentShift(activeShift || null)
+    if (shiftsData?.getUserShifts) {
+      const activeShift = shiftsData.getUserShifts.find((shift: any) => shift.status === "CLOCKED_IN")
+      setCurrentShift(activeShift || null)
+    }
 
     // Simulate getting current location
     getCurrentLocation()
-  }, [user.id])
+  }, [shiftsData])
 
   const getCurrentLocation = async () => {
     setLocationLoading(true)
+
+    try {
+      // Try to get real GPS location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords
+            setLocation({
+              latitude,
+              longitude,
+              address: "Current GPS Location", // In real app, you'd reverse geocode this
+            })
+            setLocationLoading(false)
+          },
+          (error) => {
+            console.warn("GPS not available, using mock location:", error)
+            // Fallback to mock location
+            setMockLocation()
+          },
+        )
+      } else {
+        setMockLocation()
+      }
+    } catch (error) {
+      setMockLocation()
+    }
+  }
+
+  const setMockLocation = async () => {
     // Simulate GPS delay
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
@@ -664,14 +729,18 @@ const WorkerDashboard = ({ user }: { user: User }) => {
   }
 
   const isWithinPerimeter = () => {
-    if (!location || !allowedPerimeter.enabled) return true
+    if (!location) return false
+
+    const perimeter = perimeterData?.getLocationPerimeter
+    if (!perimeter || !perimeter.isActive) return true
+
     const distance = calculateDistance(
       location.latitude,
       location.longitude,
-      allowedPerimeter.centerLat,
-      allowedPerimeter.centerLng,
+      perimeter.centerLatitude,
+      perimeter.centerLongitude,
     )
-    return distance <= allowedPerimeter.radiusKm
+    return distance <= perimeter.radiusKm
   }
 
   const handleClockAction = (action: "in" | "out") => {
@@ -680,9 +749,10 @@ const WorkerDashboard = ({ user }: { user: User }) => {
       return
     }
 
-    if (!isWithinPerimeter()) {
+    const perimeter = perimeterData?.getLocationPerimeter
+    if (perimeter?.isActive && !isWithinPerimeter()) {
       message.error(
-        `You are outside the allowed perimeter (${allowedPerimeter.radiusKm}km radius). Please move closer to the workplace.`,
+        `You are outside the allowed perimeter (${perimeter.radiusKm}km radius). Please move closer to the workplace.`,
       )
       return
     }
@@ -695,59 +765,50 @@ const WorkerDashboard = ({ user }: { user: User }) => {
   const confirmClockAction = async () => {
     setClockLoading(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    if (clockAction === "in") {
-      // Clock in
-      const newShift: Shift = {
-        id: mockShifts.length + 1,
-        workerId: user.id,
-        workerName: user.name,
-        clockInTime: new Date(),
-        clockInLocation: location.address,
-        clockInNote: note || "No note provided",
-        status: "clocked-in",
-      }
-
-      mockShifts.push(newShift)
-      setCurrentShift(newShift)
-      message.success("Successfully clocked in!")
-    } else {
-      // Clock out
-      if (currentShift) {
-        const updatedShift = {
-          ...currentShift,
-          clockOutTime: new Date(),
-          clockOutLocation: location.address,
-          clockOutNote: note || "No note provided",
-          status: "clocked-out" as const,
+    try {
+      if (clockAction === "in") {
+        await clockInMutation({
+          variables: {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            notes: note || undefined,
+          },
+        })
+      } else {
+        // Clock out
+        if (currentShift) {
+          await clockOutMutation({
+            variables: {
+              shiftId: currentShift.id,
+              latitude: location.latitude,
+              longitude: location.longitude,
+              notes: note || undefined,
+            },
+          })
         }
-
-        const shiftIndex = mockShifts.findIndex((s) => s.id === currentShift.id)
-        mockShifts[shiftIndex] = updatedShift
-        setCurrentShift(null)
-        message.success("Successfully clocked out!")
       }
+    } catch (error) {
+      console.error("Clock action error:", error)
     }
 
     setClockLoading(false)
     setNoteModalVisible(false)
   }
 
-  const formatDuration = (startTime: Date) => {
+  const formatDuration = (startTime: string | Date) => {
     const now = new Date()
-    const diff = now.getTime() - startTime.getTime()
+    const start = new Date(startTime)
+    const diff = now.getTime() - start.getTime()
     const hours = Math.floor(diff / (1000 * 60 * 60))
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
     return `${hours}h ${minutes}m`
   }
 
   const getWorkerHistory = () => {
-    return mockShifts
-      .filter((shift) => shift.workerId === user.id)
-      .sort((a, b) => new Date(b.clockInTime).getTime() - new Date(a.clockInTime).getTime())
-      .map((shift) => ({
+    if (!shiftsData?.getUserShifts) return []
+
+    return shiftsData.getUserShifts
+      .map((shift: any) => ({
         ...shift,
         key: shift.id,
         clockInTimeFormatted: new Date(shift.clockInTime).toLocaleString(),
@@ -755,23 +816,22 @@ const WorkerDashboard = ({ user }: { user: User }) => {
         duration: shift.clockOutTime
           ? `${Math.round((new Date(shift.clockOutTime).getTime() - new Date(shift.clockInTime).getTime()) / (1000 * 60 * 60 * 100)) / 100}h`
           : formatDuration(shift.clockInTime),
-        totalHours: shift.clockOutTime
-          ? (new Date(shift.clockOutTime).getTime() - new Date(shift.clockInTime).getTime()) / (1000 * 60 * 60)
-          : 0,
+        totalHours: shift.duration || 0,
       }))
+      .sort((a: any, b: any) => new Date(b.clockInTime).getTime() - new Date(a.clockInTime).getTime())
   }
 
   const getWorkerStats = () => {
     const history = getWorkerHistory()
-    const completedShifts = history.filter((shift) => shift.status === "clocked-out")
+    const completedShifts = history.filter((shift: any) => shift.status === "CLOCKED_OUT")
 
-    const totalHours = completedShifts.reduce((acc, shift) => acc + shift.totalHours, 0)
+    const totalHours = completedShifts.reduce((acc: number, shift: any) => acc + (shift.totalHours || 0), 0)
     const avgHoursPerShift = completedShifts.length > 0 ? totalHours / completedShifts.length : 0
 
     // This week's hours
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-    const thisWeekShifts = completedShifts.filter((shift) => new Date(shift.clockInTime) >= weekAgo)
-    const thisWeekHours = thisWeekShifts.reduce((acc, shift) => acc + shift.totalHours, 0)
+    const thisWeekShifts = completedShifts.filter((shift: any) => new Date(shift.clockInTime) >= weekAgo)
+    const thisWeekHours = thisWeekShifts.reduce((acc: number, shift: any) => acc + (shift.totalHours || 0), 0)
 
     return {
       totalShifts: history.length,
@@ -782,16 +842,16 @@ const WorkerDashboard = ({ user }: { user: User }) => {
     }
   }
 
-  const withinPerimeter = isWithinPerimeter()
   const workerHistory = getWorkerHistory()
   const workerStats = getWorkerStats()
+  const perimeter = perimeterData?.getLocationPerimeter
 
   const historyColumns = [
     {
       title: "Date",
       dataIndex: "clockInTime",
       key: "date",
-      render: (time: Date) => new Date(time).toLocaleDateString(),
+      render: (time: string) => new Date(time).toLocaleDateString(),
     },
     {
       title: "Clock In",
@@ -814,19 +874,16 @@ const WorkerDashboard = ({ user }: { user: User }) => {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => <Tag>{status === "clocked-in" ? "Active" : "Completed"}</Tag>,
+      render: (status: string) => (
+        <Tag color={status === "CLOCKED_IN" ? "green" : "default"}>
+          {status === "CLOCKED_IN" ? "Active" : "Completed"}
+        </Tag>
+      ),
     },
     {
       title: "Clock In Note",
-      dataIndex: "clockInNote",
+      dataIndex: "notes",
       key: "clockInNote",
-      ellipsis: true,
-    },
-    {
-      title: "Clock Out Note",
-      dataIndex: "clockOutNote",
-      key: "clockOutNote",
-      render: (note: string) => note || "-",
       ellipsis: true,
     },
   ]
@@ -887,19 +944,21 @@ const WorkerDashboard = ({ user }: { user: User }) => {
 
                   <div>
                     <Text strong>Perimeter Status: </Text>
-                    <Tag>{withinPerimeter ? "Within Allowed Area" : "Outside Allowed Area"}</Tag>
+                    <Tag color={isWithinPerimeter() ? "green" : "red"}>
+                      {isWithinPerimeter() ? "Within Allowed Area" : "Outside Allowed Area"}
+                    </Tag>
                   </div>
 
-                  {!withinPerimeter && allowedPerimeter.enabled && (
+                  {perimeter?.isActive && !isWithinPerimeter() && (
                     <Alert
                       message="You are outside the allowed perimeter"
-                      description={`You must be within ${allowedPerimeter.radiusKm}km of ${allowedPerimeter.centerAddress} to clock in/out.`}
+                      description={`You must be within ${perimeter.radiusKm}km of ${perimeter.address} to clock in/out.`}
                       type="warning"
                       showIcon
                     />
                   )}
 
-                  {!allowedPerimeter.enabled && (
+                  {!perimeter?.isActive && (
                     <Alert
                       message="Location restrictions disabled"
                       description="You can clock in/out from any location."
@@ -929,11 +988,11 @@ const WorkerDashboard = ({ user }: { user: User }) => {
                 <Space direction="vertical" style={{ width: "100%", marginBottom: "16px" }}>
                   <div>
                     <Text strong>Clocked in at: </Text>
-                    <Text>{currentShift.clockInTime.toLocaleString()}</Text>
+                    <Text>{new Date(currentShift.clockInTime).toLocaleString()}</Text>
                   </div>
                   <div>
                     <Text strong>Note: </Text>
-                    <Text>{currentShift.clockInNote}</Text>
+                    <Text>{currentShift.notes || "No note provided"}</Text>
                   </div>
                 </Space>
 
@@ -943,7 +1002,7 @@ const WorkerDashboard = ({ user }: { user: User }) => {
                   size="large"
                   icon={<StopOutlined />}
                   onClick={() => handleClockAction("out")}
-                  disabled={!withinPerimeter || locationLoading}
+                  disabled={!isWithinPerimeter() || locationLoading || clockLoading}
                   style={{ width: "100%" }}
                 >
                   Clock Out
@@ -955,14 +1014,14 @@ const WorkerDashboard = ({ user }: { user: User }) => {
                 size="large"
                 icon={<CheckCircleOutlined />}
                 onClick={() => handleClockAction("in")}
-                disabled={!withinPerimeter || locationLoading}
+                disabled={!isWithinPerimeter() || locationLoading || clockLoading}
                 style={{ width: "100%" }}
               >
                 Clock In
               </Button>
             )}
 
-            {(!withinPerimeter || locationLoading) && allowedPerimeter.enabled && (
+            {((!isWithinPerimeter() && perimeter?.isActive) || locationLoading) && (
               <Text type="secondary" style={{ display: "block", marginTop: "8px", textAlign: "center" }}>
                 {locationLoading ? "Waiting for location..." : "Move closer to workplace to enable clock in/out"}
               </Text>
@@ -1010,7 +1069,9 @@ const WorkerDashboard = ({ user }: { user: User }) => {
             <Title level={4}>
               <HistoryOutlined /> My Shift History
             </Title>
-            {workerHistory.length > 0 ? (
+            {shiftsLoading ? (
+              <Alert message="Loading shift history..." type="info" showIcon />
+            ) : workerHistory.length > 0 ? (
               <Table
                 columns={historyColumns}
                 dataSource={workerHistory}
@@ -1040,7 +1101,7 @@ const WorkerDashboard = ({ user }: { user: User }) => {
       >
         <Space direction="vertical" style={{ width: "100%" }}>
           <Text>Add an optional note for this {clockAction === "in" ? "clock in" : "clock out"}:</Text>
-          <TextArea
+          <Input.TextArea
             rows={3}
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -1058,40 +1119,101 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<User | null>(null)
 
-  const handleAuth = async (values: any) => {
-    setLoading(true)
+  const [loginUser, { loading: loginLoading }] = useMutation(LOGIN_USER)
+  const [registerUser, { loading: registerLoading }] = useMutation(REGISTER_USER)
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  useEffect(() => {
+    const token = localStorage.getItem("auth-token")
+    const userData = localStorage.getItem("user-data")
 
-    if (isLogin) {
-      // Login logic
-      const foundUser = mockUsers.find((u) => u.username === values.username && u.password === values.password)
-
-      if (foundUser) {
-        const { password, ...userWithoutPassword } = foundUser
-        setUser({ ...userWithoutPassword, role: userWithoutPassword.role as User["role"] })
-        message.success(`Welcome back, ${foundUser.name}!`)
-      } else {
-        message.error("Invalid credentials")
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData)
+        setUser(parsedUser)
+      } catch (error) {
+        // Clear invalid data
+        localStorage.removeItem("auth-token")
+        localStorage.removeItem("user-data")
       }
-    } else {
-      // Signup logic
-      const newUser = {
-        id: mockUsers.length + 1,
-        username: values.username,
-        role: values.role,
-        name: values.name,
-      }
-      mockUsers.push({ ...newUser, password: values.password })
-      setUser(newUser)
-      message.success(`Account created successfully! Welcome, ${values.name}!`)
     }
+  }, [])
 
-    setLoading(false)
+  const handleAuth = async (values: any) => {
+    try {
+      if (isLogin) {
+        const { data } = await loginUser({
+          variables: {
+            email: values.email,
+            password: values.password,
+          },
+        })
+
+        if (data?.loginUser) {
+          const userData = data.loginUser
+          // Store token and user data
+          localStorage.setItem("auth-token", userData.token)
+          localStorage.setItem(
+            "user-data",
+            JSON.stringify({
+              id: userData.id,
+              email: userData.email,
+              name: userData.name,
+              role: userData.role,
+            }),
+          )
+
+          setUser({
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
+            role: userData.role,
+          })
+
+          message.success(`Welcome back, ${userData.name}!`)
+        }
+      } else {
+        const { data } = await registerUser({
+          variables: {
+            email: values.email,
+            password: values.password,
+            name: values.name,
+            role: values.role,
+          },
+        })
+
+        if (data?.registerUser) {
+          const userData = data.registerUser
+          // Store token and user data
+          localStorage.setItem("auth-token", userData.token)
+          localStorage.setItem(
+            "user-data",
+            JSON.stringify({
+              id: userData.id,
+              email: userData.email,
+              name: userData.name,
+              role: userData.role,
+            }),
+          )
+
+          setUser({
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
+            role: userData.role,
+          })
+
+          message.success(`Account created successfully! Welcome, ${userData.name}!`)
+        }
+      }
+    } catch (error: any) {
+      console.error("Authentication error:", error)
+      message.error(error.message || "Authentication failed")
+    }
   }
 
   const handleLogout = () => {
+    localStorage.removeItem("auth-token")
+    localStorage.removeItem("user-data")
     setUser(null)
     message.info("Logged out successfully")
   }
@@ -1108,7 +1230,7 @@ export default function LoginPage() {
                     Care Worker Shift Tracking
                   </Title>
                   <Text type="secondary" style={{ fontSize: 16 }}>
-                    Welcome, {user.name} • {user.role === "manager" ? "Manager" : "Care Worker"}
+                    Welcome, {user.name} • {user.role === "MANAGER" ? "Manager" : "Care Worker"}
                   </Text>
                 </Col>
                 <Col>
@@ -1120,7 +1242,11 @@ export default function LoginPage() {
 
               <Divider />
 
-              {user.role === "manager" ? <ManagerDashboard user={user} /> : <WorkerDashboard user={user} />}
+              {user.role === "MANAGER" ? (
+                <ManagerDashboard user={user} onLogout={handleLogout} />
+              ) : (
+                <WorkerDashboard user={user} onLogout={handleLogout} />
+              )}
             </Card>
           </div>
         </div>
@@ -1153,8 +1279,14 @@ export default function LoginPage() {
               </div>
 
               <Form name="auth" onFinish={handleAuth} layout="vertical" size="large">
-                <Form.Item name="username" rules={[{ required: true, message: "Please input your username!" }]}>
-                  <Input prefix={<UserOutlined />} placeholder="Username" />
+                <Form.Item
+                  name="email"
+                  rules={[
+                    { required: true, message: "Please input your email!" },
+                    { type: "email", message: "Please enter a valid email!" },
+                  ]}
+                >
+                  <Input prefix={<UserOutlined />} placeholder="Email" type="email" />
                 </Form.Item>
 
                 <Form.Item name="password" rules={[{ required: true, message: "Please input your password!" }]}>
@@ -1169,8 +1301,8 @@ export default function LoginPage() {
 
                     <Form.Item name="role" rules={[{ required: true, message: "Please select your role!" }]}>
                       <Select placeholder="Select Role" size="large">
-                        <Option value="worker">Care Worker</Option>
-                        <Option value="manager">Manager</Option>
+                        <Option value="CARE_WORKER">Care Worker</Option>
+                        <Option value="MANAGER">Manager</Option>
                       </Select>
                     </Form.Item>
                   </>
@@ -1180,7 +1312,7 @@ export default function LoginPage() {
                   <Button
                     type="primary"
                     htmlType="submit"
-                    loading={loading}
+                    loading={loginLoading || registerLoading}
                     size="large"
                     style={{ width: "100%", height: 48 }}
                     icon={isLogin ? <LoginOutlined /> : <UserAddOutlined />}
@@ -1193,16 +1325,6 @@ export default function LoginPage() {
               <Button type="link" onClick={() => setIsLogin(!isLogin)} size="large">
                 {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
               </Button>
-
-              {isLogin && (
-                <Card size="small" style={{ backgroundColor: "#f8f9fa", textAlign: "left" }}>
-                  <Text strong>Demo Accounts:</Text>
-                  <br />
-                  <Text>Manager: manager1 / password</Text>
-                  <br />
-                  <Text>Worker: worker1 / password</Text>
-                </Card>
-              )}
             </Space>
           </Card>
         </div>

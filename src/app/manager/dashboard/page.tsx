@@ -1,16 +1,16 @@
 // app/manager/dashboard/page.tsx
 "use client";
 import React, { useState } from "react";
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import AnalyticsCards from "@/components/common/AnalyticsCards";
-import PerimeterMap from "@/components/manager/PerimeterMap";
-import LiveStaffTable, { StaffRecord } from "@/components/manager/LiveStaffTable";
-import type { ShiftRecord } from "@/components/careworker/ShiftHistoryTable";
-import StaffSelect from "@/components/manager/StaffSelect";
-import StaffHistoryTable from "@/components/manager/StaffHistoryTable";
+import DashboardLayout from "@/layouts/DashboardLayout";
+import AnalyticsCards from "@/components/old/common/AnalyticsCards";
+import PerimeterMap from "@/components/old/manager/PerimeterMap";
+import LiveStaffTable, { StaffRecord } from "@/components/old/manager/LiveStaffTable";
+import type { ShiftRecord } from "@/components/old/careworker/ShiftHistoryTable";
+import StaffSelect from "@/components/old/manager/StaffSelect";
+import StaffHistoryTable from "@/components/old/manager/StaffHistoryTable";
 
 export default function ManagerDashboardPage() {
-  // Mock state
+  // Mock states
   const [center, setCenter] = useState<[number, number]>([19.0760, 72.8777]);
   const [radius, setRadius] = useState(2000);
   const [selectedStaff, setSelectedStaff] = useState("Alice");

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import React from 'react';
+
 import { ConfigProvider } from 'antd';
 import { antdTheme } from '@/theme';
 import AppLayout from '@/layouts/AppLayout';
 import type { AppLayoutProps } from '@/layouts/AppLayout';
 import DashboardLayout from "@/layouts/DashboardLayout";
+import '@ant-design/v5-patch-for-react-19';
 
 
 export const metadata: Metadata = {
@@ -25,8 +27,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AntdRegistry>
+          
         <ConfigProvider theme={{ ...antdTheme }}>
-        <DashboardLayout userRole={userRole}>{children}</DashboardLayout>
+        {children}
         </ConfigProvider>
           </AntdRegistry>
       </body>

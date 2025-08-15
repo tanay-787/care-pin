@@ -3,7 +3,7 @@
 import React from "react";
 import { Table } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import type { ShiftRecord } from "@/components/careworker/ShiftHistoryTable";
+import type { ShiftRecord } from "@/components/old/careworker/ShiftHistoryTable";
 
 interface StaffHistoryTableProps {
   data: ShiftRecord[];
