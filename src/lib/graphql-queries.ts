@@ -1,29 +1,6 @@
 import { gql } from "@apollo/client"
 
 // User Authentication
-export const LOGIN_USER = gql`
-  mutation LoginUser($email: String!, $password: String!) {
-    loginUser(email: $email, password: $password) {
-      id
-      email
-      name
-      role
-      token
-    }
-  }
-`
-
-export const REGISTER_USER = gql`
-  mutation RegisterUser($email: String!, $password: String!, $name: String!, $role: Role!) {
-    registerUser(email: $email, password: $password, name: $name, role: $role) {
-      id
-      email
-      name
-      role
-      token
-    }
-  }
-`
 
 // User Queries
 export const GET_CURRENT_USER = gql`
@@ -34,6 +11,7 @@ export const GET_CURRENT_USER = gql`
       name
       role
       createdAt
+      auth0Id
     }
   }
 `
@@ -46,6 +24,7 @@ export const GET_ALL_USERS = gql`
       name
       role
       createdAt
+      auth0Id
     }
   }
 `
@@ -165,6 +144,20 @@ export const UPDATE_LOCATION_PERIMETER = gql`
         name
         email
       }
+    }
+  }
+`
+
+// Manager Role Management
+export const CREATE_OR_UPDATE_USER = gql`
+  mutation CreateOrUpdateUser($email: String!, $name: String!, $role: Role!) {
+    createOrUpdateUser(email: $email, name: $name, role: $role) {
+      id
+      email
+      name
+      role
+      createdAt
+      auth0Id
     }
   }
 `

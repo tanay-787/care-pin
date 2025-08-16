@@ -1,39 +1,40 @@
-import type { Metadata } from "next";
-import { AntdRegistry } from '@ant-design/nextjs-registry';
-import React from 'react';
-
-import { ConfigProvider } from 'antd';
-import { antdTheme } from '@/theme';
-import AppLayout from '@/layouts/AppLayout';
-import type { AppLayoutProps } from '@/layouts/AppLayout';
-import DashboardLayout from "@/layouts/DashboardLayout";
-import '@ant-design/v5-patch-for-react-19';
-
+import type React from "react"
+import type { Metadata } from "next"
+import { ConfigProvider } from "antd"
+import { Auth0Provider } from "@auth0/nextjs-auth0"
+import { ApolloWrapper } from "@/lib/apollo-wrapper"
+import "./globals.css"
+import "@ant-design/v5-patch-for-react-19"
 
 export const metadata: Metadata = {
-  title: "Lief Clock-In App",
-  description: "Attendance system for Lief Care Workers",
-};
+  title: "Care Worker Shift Tracking",
+  description: "Track care worker shifts with location-based check-ins",
+  generator: "v0.dev",
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
-
-  const userRole: AppLayoutProps['userRole'] = 'careworker';
-
   return (
     <html lang="en">
       <body>
-        <AntdRegistry>
-          
-        <ConfigProvider theme={{ ...antdTheme }}>
-        {children}
-        </ConfigProvider>
-          </AntdRegistry>
+        <Auth0Provider>
+          <ApolloWrapper>
+            <ConfigProvider
+              theme={{
+                token: {
+                  colorPrimary: "#1890ff",
+                  borderRadius: 6,
+                },
+              }}
+            >
+              {children}
+            </ConfigProvider>
+          </ApolloWrapper>
+        </Auth0Provider>
       </body>
     </html>
-  );
+  )
 }
-

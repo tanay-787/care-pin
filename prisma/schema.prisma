@@ -12,8 +12,8 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  role      UserRole @default(CARE_WORKER)
-  password  String
+  role      UserRole
+  auth0Id   String? @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
@@ -27,13 +27,13 @@ model User {
 model Shift {
   id                 String      @id @default(cuid())
   userId             String
-  clockInTime        DateTime
-  clockOutTime       DateTime?
+  clockInTime        DateTime // Change to non-nullable DateTime
+  clockOutTime       DateTime? // Keep nullable DateTime
   clockInLatitude    Float?
   clockInLongitude   Float?
   clockOutLatitude   Float?
   clockOutLongitude  Float?
-  notes              String?
+  notes              String? // Keep notes nullable
   status             ShiftStatus @default(CLOCKED_IN)
   duration           Int?        // Duration in minutes
   createdAt          DateTime    @default(now())
@@ -49,15 +49,15 @@ model LocationPerimeter {
   id              String   @id @default(cuid())
   centerLatitude  Float
   centerLongitude Float
-  radiusKm        Float    @default(2.0)
+  radiusKm        Float // Remove default value
   address         String
-  isActive        Boolean  @default(true)
+  isActive        Boolean // Remove default value
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  updatedById     String?
+  updatedAt       DateTime @updatedAt // Change to non-nullable DateTime and keep @updatedAt
+  updatedById     String // Make updatedById non-nullable
   
   // Relations
-  updatedBy       User?    @relation("UpdatedBy", fields: [updatedById], references: [id])
+  updatedBy       User    @relation("UpdatedBy", fields: [updatedById], references: [id]) // Make relation non-nullable
   
   @@map("location_perimeters")
 }

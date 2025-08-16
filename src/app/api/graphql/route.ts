@@ -1,11 +1,8 @@
 import { createYoga } from "graphql-yoga"
 import { makeExecutableSchema } from "@graphql-tools/schema"
 import prisma from "@/lib/prisma"
-import jwt from "jsonwebtoken"
-import bcrypt from "bcryptjs"
-import { UserRole  } from "@prisma/client"
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"
+import { auth0 } from "@/lib/auth0"
+import type { NextRequest } from "next/server"
 
 const typeDefs = /* GraphQL */ `
   type User {
@@ -14,7 +11,7 @@ const typeDefs = /* GraphQL */ `
     name: String
     role: Role!
     createdAt: String!
-    token: String
+    auth0Id: String!
   }
 
   type Shift {
@@ -61,8 +58,7 @@ const typeDefs = /* GraphQL */ `
   }
 
   type Mutation {
-    loginUser(email: String!, password: String!): User!
-    registerUser(email: String!, password: String!, name: String!, role: Role!): User!
+    createOrUpdateUser(email: String!, name: String!, role: Role!): User!
     clockIn(latitude: Float!, longitude: Float!, notes: String): Shift!
     clockOut(shiftId: String!, latitude: Float!, longitude: Float!, notes: String): Shift!
     updateLocationPerimeter(
@@ -75,11 +71,31 @@ const typeDefs = /* GraphQL */ `
   }
 `
 
-const getUser = async (token: string) => {
+const getCurrentUserFromSession = async (request: NextRequest) => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string }
-    return await prisma.user.findUnique({ where: { id: decoded.userId } })
-  } catch {
+    const session = await auth0.getSession(request)
+    if (!session?.user) return null
+
+    // Find or create user in database based on Auth0 user
+    let user = await prisma.user.findUnique({
+      where: { auth0Id: session.user.sub },
+    })
+
+    if (!user) {
+      // Create user if doesn't exist (first time login)
+      user = await prisma.user.create({
+        data: {
+          auth0Id: session.user.sub,
+          email: session.user.email!,
+          name: session.user.name || session.user.email!,
+          role: "CARE_WORKER", // Default role, can be updated by manager
+        },
+      })
+    }
+
+    return user
+  } catch (error) {
+    console.error("Error getting user from session:", error)
     return null
   }
 }
@@ -87,18 +103,75 @@ const getUser = async (token: string) => {
 const resolvers = {
   Query: {
     getCurrentUser: async (_: unknown, __: unknown, context: any) => {
-      const token = context.request.headers.get("authorization")?.replace("Bearer ", "")
-      if (!token) return null
-      return await getUser(token)
-    },
+        const session = await auth0.getSession(context.request);
+      
+        if (!session?.user || !session.user.email) {
+          console.log("User not authenticated via Auth0 or email is missing");
+          return null; // Return null if no authenticated user
+        }
+      
+        const auth0UserId = session.user.sub;
+        const userEmail = session.user.email;
+        const userName = session.user.name || userEmail; // Use name from Auth0, fallback to email
+      
+        // Find or create user in your database based on Auth0 user ID
+        let user = await prisma.user.findUnique({
+          where: { auth0Id: auth0UserId },
+        });
+      
+        if (!user) {
+          // User doesn't exist in your database, create the record
+          user = await prisma.user.create({
+            data: {
+              auth0Id: auth0UserId,
+              email: userEmail,
+              name: userName,
+            },
+          });
+           console.log("New user created in DB:", user.email); // Log for debugging
+        } else {
+            // Optional: Update user details from Auth0 if they might have changed
+            // (e.g., name, email if you allow changing email in Auth0)
+            if (user.email !== userEmail || user.name !== userName) {
+                console.log("Updating user details from Auth0:", userEmail); // Log for debugging
+                 await prisma.user.update({
+                     where: { auth0Id: auth0UserId },
+                     data: {
+                         email: userEmail,
+                         name: userName,
+                     },
+                 });
+                 // Re-fetch the user after update to return the latest version
+                 user = await prisma.user.findUnique({
+                     where: { auth0Id: auth0UserId },
+                 });
+            }
+        }
+      
+        // Return the user from your database
+        return user;
+      },
 
-    getAllUsers: async () => {
+    getAllUsers: async (_: unknown, __: unknown, context: any) => {
+      const currentUser = await getCurrentUserFromSession(context.request)
+      if (!currentUser || currentUser.role !== "MANAGER") {
+        throw new Error("Manager access required")
+      }
+
       return await prisma.user.findMany({
         orderBy: { createdAt: "desc" },
       })
     },
 
-    getUserShifts: async (_: unknown, { userId }: { userId: string }) => {
+    getUserShifts: async (_: unknown, { userId }: { userId: string }, context: any) => {
+      const currentUser = await getCurrentUserFromSession(context.request)
+      if (!currentUser) throw new Error("Authentication required")
+
+      // Users can only see their own shifts unless they're a manager
+      if (currentUser.role !== "MANAGER" && currentUser.id !== userId) {
+        throw new Error("Access denied")
+      }
+
       return await prisma.shift.findMany({
         where: { userId },
         include: { user: true },
@@ -106,7 +179,12 @@ const resolvers = {
       })
     },
 
-    getAllShifts: async () => {
+    getAllShifts: async (_: unknown, __: unknown, context: any) => {
+      const currentUser = await getCurrentUserFromSession(context.request)
+      if (!currentUser || currentUser.role !== "MANAGER") {
+        throw new Error("Manager access required")
+      }
+
       return await prisma.shift.findMany({
         include: { user: true },
         orderBy: { createdAt: "desc" },
@@ -122,44 +200,48 @@ const resolvers = {
   },
 
   Mutation: {
-    loginUser: async (_: unknown, { email, password }: { email: string; password: string }) => {
-      const user = await prisma.user.findUnique({ where: { email } })
-      if (!user) throw new Error("Invalid credentials")
-
-      const isValid = await bcrypt.compare(password, user.password)
-      if (!isValid) throw new Error("Invalid credentials")
-
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" })
-      return { ...user, token }
-    },
-
-    registerUser: async (
+    createOrUpdateUser: async (
       _: unknown,
-      {
-        email,
-        password,
-        name,
-        role,
-      }: { email: string; password: string; name: string; role: UserRole },
+      { name, role }: { name: string | null | undefined; role: "MANAGER" | "CARE_WORKER" | undefined },
+      context: any,
     ) => {
-      const hashedPassword = await bcrypt.hash(password, 10)
-      const user = await prisma.user.create({
-        data: { email, name, role, password: hashedPassword },
-      })
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" })
-      return { ...user, token }
+      const user = await getCurrentUserFromSession(context.request)
+      if (!user) throw new Error("Authentication required")
+    
+      // Prepare data for update
+      const updateData: { name?: string | null; role?: "MANAGER" | "CARE_WORKER" } = {};
+    
+          updateData.name = name;
+    
+      if (role !== undefined && user.role === null) { // Check if role input is provided AND user has no role in DB
+          updateData.role = role; // Set the role
+      } else if (role !== undefined && user.role !== null && user.role !== role) {
+           throw new Error("Role cannot be changed after it has been set.");
+      }
+    
+    
+      // If no update data is provided (e.g., called the mutation with no name or role input),
+      // return the existing user without performing an update.
+       if (Object.keys(updateData).length === 0) {
+           return user;
+       }
+    
+      // Update the user's profile
+      return await prisma.user.update({
+        where: { email: user.email },
+        data: updateData,
+        include: { shifts: true, locationPerimetersUpdated: true }
+      });
     },
+    
 
     clockIn: async (
       _: unknown,
       { latitude, longitude, notes }: { latitude: number; longitude: number; notes?: string },
       context: any,
     ) => {
-      const token = context.request.headers.get("authorization")?.replace("Bearer ", "")
-      if (!token) throw new Error("Authentication required")
-
-      const user = await getUser(token)
-      if (!user) throw new Error("Invalid token")
+      const user = await getCurrentUserFromSession(context.request)
+      if (!user) throw new Error("Authentication required")
 
       return await prisma.shift.create({
         data: {
@@ -177,9 +259,22 @@ const resolvers = {
     clockOut: async (
       _: unknown,
       { shiftId, latitude, longitude, notes }: { shiftId: string; latitude: number; longitude: number; notes?: string },
+      context: any,
     ) => {
-      const shift = await prisma.shift.findUnique({ where: { id: shiftId } })
+      const user = await getCurrentUserFromSession(context.request)
+      if (!user) throw new Error("Authentication required")
+
+      const shift = await prisma.shift.findUnique({
+        where: { id: shiftId },
+        include: { user: true },
+      })
+
       if (!shift) throw new Error("Shift not found")
+
+      // Users can only clock out their own shifts unless they're a manager
+      if (user.role !== "MANAGER" && shift.userId !== user.id) {
+        throw new Error("Access denied")
+      }
 
       const clockOutTime = new Date()
       const duration = Math.floor((clockOutTime.getTime() - shift.clockInTime.getTime()) / (1000 * 60))
@@ -215,11 +310,10 @@ const resolvers = {
       },
       context: any,
     ) => {
-      const token = context.request.headers.get("authorization")?.replace("Bearer ", "")
-      if (!token) throw new Error("Authentication required")
-
-      const user = await getUser(token)
-      if (!user || user.role !== "MANAGER") throw new Error("Manager access required")
+      const user = await getCurrentUserFromSession(context.request)
+      if (!user || user.role !== "MANAGER") {
+        throw new Error("Manager access required")
+      }
 
       // Deactivate existing perimeters
       await prisma.locationPerimeter.updateMany({
@@ -251,7 +345,11 @@ const { handleRequest } = createYoga({
   schema,
   graphqlEndpoint: "/api/graphql",
   fetchAPI: { Response },
-  context: (request) => ({ request }),
+  context: async ({ req }: { req: NextRequest }) => { // Accept req as NextRequest
+    return {
+      request: req,
+    };
+  }
 })
 
 export { handleRequest as GET, handleRequest as POST }

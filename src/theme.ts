@@ -9,7 +9,7 @@ export const antdTheme: ThemeConfig = {
     colorError: '#FF4D4F',
     colorTextBase: '#212121',
     borderRadius: 6,
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: 'Inter, sans-serif',
     fontWeightStrong: 400,
     controlHeight: 40,

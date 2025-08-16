@@ -8,7 +8,6 @@ import {
   Card,
   Space,
   Statistic,
-  Timeline,
   Avatar,
   Divider,
   Form,
@@ -16,20 +15,16 @@ import {
   message,
 } from "antd"
 import {
-  ClockCircleOutlined,
-  EnvironmentOutlined,
-  DashboardOutlined,
-  TeamOutlined,
   SafetyOutlined,
-  MobileOutlined,
   CheckCircleOutlined,
-  BarChartOutlined,
   GlobalOutlined,
   MailOutlined,
   PhoneOutlined,
   LinkedinOutlined,
   TwitterOutlined,
+  PlayCircleOutlined,
 } from "@ant-design/icons"
+import UserButton from '@/components/UserButton';
 
 const { Header, Content, Footer } = Layout
 const { Title, Paragraph, Text } = Typography
@@ -43,11 +38,11 @@ export default function LandingPage() {
   }
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: "100vh", margin: "0" }}>
       {/* Header */}
       <Header
         style={{
-          background: "#fff",
+          background: "#f2f0ef",
           boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
           position: "fixed",
           width: "100%",
@@ -55,21 +50,30 @@ export default function LandingPage() {
           padding: "0 50px",
         }}
       >
-        <Row justify="space-between" align="middle" style={{ height: "64px" }}>
+        <Row justify="space-between" align="bottom" style={{ height: "64px" }}>
           <Col>
-            <Space align="center">
-              <SafetyOutlined style={{ fontSize: "24px", color: "#1890ff" }} />
-              <Title level={3} style={{ margin: 0, color: "#1890ff" }}>
-                ShiftGuard
+            <Space align="baseline">
+              <img src="/logo.png" alt="CarePin" style={{ margin: 0, height: "2rem", width: "2rem"}} />
+              <Title level={2} style={{ margin: 0, color: "#1890ff", fontWeight: 700 }}>
+                CarePin
               </Title>
             </Space>
           </Col>
           <Col>
             <Space size="large">
-              <Button type="text">Features</Button>
-              <Button type="text">Pricing</Button>
-              <Button type="text">About</Button>
-              <Button type="primary">Get Started</Button>
+              <Button type="text" style={{ color: "#666" }}>
+                Features
+              </Button>
+              <Button type="text" style={{ color: "#666" }}>
+                Pricing
+              </Button>
+              <Button type="text" style={{ color: "#666" }}>
+                Resources
+              </Button>
+              <Button type="text" style={{ color: "#666" }}>
+                About
+              </Button>
+             <UserButton />
             </Space>
           </Col>
         </Row>
@@ -77,299 +81,291 @@ export default function LandingPage() {
 
       <Content style={{ marginTop: "64px" }}>
         {/* Hero Section */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            padding: "120px 50px",
-            textAlign: "center",
-            color: "white",
-          }}
-        >
-          <Row justify="center">
-            <Col xs={24} md={16} lg={12}>
-              <Title level={1} style={{ color: "white", fontSize: "3.5rem", marginBottom: "24px" }}>
-                Smart Care Worker Management
-              </Title>
-              <Paragraph
-                style={{
-                  fontSize: "1.25rem",
-                  color: "rgba(255,255,255,0.9)",
-                  marginBottom: "40px",
-                  lineHeight: "1.6",
-                }}
-              >
-                Location-based shift tracking for healthcare organizations. Monitor attendance, enforce check-ins, and
-                gain valuable insights with ShiftGuard's intelligent platform.
-              </Paragraph>
-              <Space size="large">
-                <Button type="primary" size="large" style={{ height: "50px", fontSize: "16px", padding: "0 40px" }}>
-                  Start Free Trial
-                </Button>
-                <Button
-                  size="large"
-                  style={{
-                    height: "50px",
-                    fontSize: "16px",
-                    padding: "0 40px",
-                    background: "rgba(255,255,255,0.1)",
-                    borderColor: "rgba(255,255,255,0.3)",
-                    color: "white",
-                  }}
-                >
-                  Watch Demo
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-        </div>
-
-        {/* Stats Section */}
-        <div style={{ padding: "80px 50px", background: "#fafafa" }}>
-          <Row gutter={[32, 32]} justify="center">
-            <Col xs={12} md={6}>
-              <Statistic
-                title="Healthcare Organizations"
-                value={500}
-                suffix="+"
-                valueStyle={{ color: "#1890ff", fontSize: "2.5rem" }}
-              />
-            </Col>
-            <Col xs={12} md={6}>
-              <Statistic
-                title="Care Workers Managed"
-                value={25000}
-                suffix="+"
-                valueStyle={{ color: "#52c41a", fontSize: "2.5rem" }}
-              />
-            </Col>
-            <Col xs={12} md={6}>
-              <Statistic
-                title="Hours Tracked"
-                value={2.5}
-                suffix="M+"
-                valueStyle={{ color: "#722ed1", fontSize: "2.5rem" }}
-              />
-            </Col>
-            <Col xs={12} md={6}>
-              <Statistic
-                title="Accuracy Rate"
-                value={99.8}
-                suffix="%"
-                valueStyle={{ color: "#fa8c16", fontSize: "2.5rem" }}
-              />
-            </Col>
-          </Row>
-        </div>
-
-        {/* Features Section */}
-        <div style={{ padding: "100px 50px" }}>
-          <Row justify="center" style={{ marginBottom: "80px" }}>
-            <Col xs={24} md={16} lg={12} style={{ textAlign: "center" }}>
-              <Title level={2} style={{ fontSize: "2.5rem", marginBottom: "24px" }}>
-                Powerful Features for Modern Healthcare
-              </Title>
-              <Paragraph style={{ fontSize: "1.1rem", color: "#666" }}>
-                Everything you need to manage your care workforce efficiently and compliantly
-              </Paragraph>
-            </Col>
-          </Row>
-
-          <Row gutter={[40, 40]}>
-            <Col xs={24} md={12} lg={8}>
-              <Card
-                hoverable
-                style={{
-                  height: "100%",
-                  textAlign: "center",
-                  border: "none",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                }}
-                bodyStyle={{ padding: "40px 30px" }}
-              >
-                <EnvironmentOutlined style={{ fontSize: "48px", color: "#1890ff", marginBottom: "24px" }} />
-                <Title level={4}>Location-Based Check-ins</Title>
-                <Paragraph style={{ color: "#666" }}>
-                  Define GPS perimeters and ensure care workers can only clock in from authorized locations.
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col xs={24} md={12} lg={8}>
-              <Card
-                hoverable
-                style={{
-                  height: "100%",
-                  textAlign: "center",
-                  border: "none",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                }}
-                bodyStyle={{ padding: "40px 30px" }}
-              >
-                <DashboardOutlined style={{ fontSize: "48px", color: "#52c41a", marginBottom: "24px" }} />
-                <Title level={4}>Real-time Dashboard</Title>
-                <Paragraph style={{ color: "#666" }}>
-                  Monitor attendance, track hours, and gain insights with comprehensive analytics and reporting.
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col xs={24} md={12} lg={8}>
-              <Card
-                hoverable
-                style={{
-                  height: "100%",
-                  textAlign: "center",
-                  border: "none",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                }}
-                bodyStyle={{ padding: "40px 30px" }}
-              >
-                <MobileOutlined style={{ fontSize: "48px", color: "#722ed1", marginBottom: "24px" }} />
-                <Title level={4}>Mobile-First Design</Title>
-                <Paragraph style={{ color: "#666" }}>
-                  Responsive design that works perfectly on any device, with PWA capabilities for offline use.
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col xs={24} md={12} lg={8}>
-              <Card
-                hoverable
-                style={{
-                  height: "100%",
-                  textAlign: "center",
-                  border: "none",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                }}
-                bodyStyle={{ padding: "40px 30px" }}
-              >
-                <TeamOutlined style={{ fontSize: "48px", color: "#fa8c16", marginBottom: "24px" }} />
-                <Title level={4}>Staff Management</Title>
-                <Paragraph style={{ color: "#666" }}>
-                  Comprehensive staff management with role-based access and detailed attendance tracking.
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col xs={24} md={12} lg={8}>
-              <Card
-                hoverable
-                style={{
-                  height: "100%",
-                  textAlign: "center",
-                  border: "none",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                }}
-                bodyStyle={{ padding: "40px 30px" }}
-              >
-                <BarChartOutlined style={{ fontSize: "48px", color: "#eb2f96", marginBottom: "24px" }} />
-                <Title level={4}>Advanced Analytics</Title>
-                <Paragraph style={{ color: "#666" }}>
-                  Detailed reports on hours worked, attendance patterns, and workforce productivity metrics.
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col xs={24} md={12} lg={8}>
-              <Card
-                hoverable
-                style={{
-                  height: "100%",
-                  textAlign: "center",
-                  border: "none",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                }}
-                bodyStyle={{ padding: "40px 30px" }}
-              >
-                <SafetyOutlined style={{ fontSize: "48px", color: "#13c2c2", marginBottom: "24px" }} />
-                <Title level={4}>Secure & Compliant</Title>
-                <Paragraph style={{ color: "#666" }}>
-                  Enterprise-grade security with HIPAA compliance and robust data protection measures.
-                </Paragraph>
-              </Card>
-            </Col>
-          </Row>
-        </div>
-
-        {/* How It Works Section */}
-        <div style={{ padding: "100px 50px", background: "#fafafa" }}>
-          <Row justify="center" style={{ marginBottom: "80px" }}>
-            <Col xs={24} md={16} lg={12} style={{ textAlign: "center" }}>
-              <Title level={2} style={{ fontSize: "2.5rem", marginBottom: "24px" }}>
-                How ShiftGuard Works
-              </Title>
-              <Paragraph style={{ fontSize: "1.1rem", color: "#666" }}>
-                Simple, intuitive workflow that gets your team up and running in minutes
-              </Paragraph>
-            </Col>
-          </Row>
-
+        <div style={{ padding: "100px 50px", background: "#f2f0ef" }}>
           <Row gutter={[60, 60]} align="middle">
             <Col xs={24} lg={12}>
-              <Timeline
-                items={[
-                  {
-                    dot: <EnvironmentOutlined style={{ fontSize: "16px" }} />,
-                    children: (
-                      <div>
-                        <Title level={4}>Set Location Perimeter</Title>
-                        <Paragraph>Define GPS boundaries where care workers can clock in and out</Paragraph>
-                      </div>
-                    ),
-                  },
-                  {
-                    dot: <TeamOutlined style={{ fontSize: "16px" }} />,
-                    children: (
-                      <div>
-                        <Title level={4}>Add Your Team</Title>
-                        <Paragraph>Invite care workers and assign appropriate roles and permissions</Paragraph>
-                      </div>
-                    ),
-                  },
-                  {
-                    dot: <ClockCircleOutlined style={{ fontSize: "16px" }} />,
-                    children: (
-                      <div>
-                        <Title level={4}>Start Tracking</Title>
-                        <Paragraph>Care workers can now clock in/out with location validation and notes</Paragraph>
-                      </div>
-                    ),
-                  },
-                  {
-                    dot: <BarChartOutlined style={{ fontSize: "16px" }} />,
-                    children: (
-                      <div>
-                        <Title level={4}>Monitor & Analyze</Title>
-                        <Paragraph>View real-time data and generate comprehensive reports</Paragraph>
-                      </div>
-                    ),
-                  },
-                ]}
-              />
+              <Space direction="vertical" size="large" style={{ width: "100%" }}>
+                <Title
+                  level={1}
+                  style={{
+                    fontSize: "4rem",
+                    lineHeight: "4rem",
+                    color: "#1a1a1a",
+                    fontWeight: 700,
+                    margin: 0,
+                  }}
+                >
+                  CareWorker Tracking Made Simple
+                </Title>
+                <Paragraph
+                  style={{
+                    fontSize: "1rem",
+                    color: "#666",
+                    lineHeight: "1.5",
+                    marginBottom: "16px",
+                  }}
+                >
+                  Know where your care workers are and when they arrive. Simple location tracking that just works, so
+                  you can focus on what matters most - providing great care.
+                </Paragraph>
+                <Space size="large">
+                  <Button
+                    type="primary"
+                    size="large"
+                    style={{
+                      height: "48px",
+                      fontSize: "16px",
+                      padding: "0 32px",
+                      borderRadius: "6px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Get Started
+                  </Button>
+                  <Button
+                    size="large"
+                    icon={<PlayCircleOutlined />}
+                    style={{
+                      height: "48px",
+                      fontSize: "16px",
+                      padding: "0 32px",
+                      borderColor: "#d9d9d9",
+                      color: "#666",
+                      borderRadius: "6px",
+                    }}
+                  >
+                    Watch Demo
+                  </Button>
+                </Space>
+                <Paragraph style={{ fontSize: "14px", color: "#999", marginTop: "16px" }}>
+                  Trusted by 500+ care organizations who wanted something simple that works
+                </Paragraph>
+              </Space>
             </Col>
             <Col xs={24} lg={12}>
-              <div
-                style={{
-                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  borderRadius: "12px",
-                  padding: "60px 40px",
-                  textAlign: "center",
-                  color: "white",
-                }}
-              >
-                <CheckCircleOutlined style={{ fontSize: "64px", marginBottom: "24px" }} />
-                <Title level={3} style={{ color: "white", marginBottom: "16px" }}>
-                  Ready in 5 Minutes
-                </Title>
-                <Paragraph style={{ color: "rgba(255,255,255,0.9)", fontSize: "1.1rem" }}>
-                  No complex setup required. Get your healthcare organization up and running with ShiftGuard in just a
-                  few clicks.
-                </Paragraph>
+              <div style={{ textAlign: "center" }}>
+                <img
+                  src="/hero-img.png"
+                  alt="CarePin"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: "12px",
+                  }}
+                />
               </div>
             </Col>
           </Row>
         </div>
 
+        {/* What Makes CarePin Stand Out Section */}
+        <div style={{ background: "#001529", padding: "100px 50px", color: "white" }}>
+          <Row justify="center" style={{ marginBottom: "80px" }}>
+            <Col xs={24} md={16} style={{ textAlign: "center" }}>
+              <Title
+                level={2}
+                style={{
+                  color: "white",
+                  fontSize: "3.2rem",
+                  lineHeight: "3.2rem",
+                  fontWeight: 600,
+                  marginBottom: "24px",
+                }}
+              >
+                What Makes CarePin Stand Out?
+              </Title>
+            </Col>
+          </Row>
+
+          <Row gutter={[60, 80]}>
+            {/* Feature 1 */}
+            <Col xs={24} lg={12}>
+              <Space direction="vertical" size="large">
+                <div
+                  style={{
+                    background: "#1890ff",
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "20px",
+                    fontWeight: "bold",
+                    color: "white",
+                  }}
+                >
+                  01
+                </div>
+                <Title level={2} style={{ color: "white", marginBottom: "8px", fontSize: "2.5rem", lineHeight: "2.5rem" }}>
+                  No more guessing games!
+                </Title>
+                <Paragraph style={{ color: "rgba(255,255,255,0.8)", fontSize: "18px", lineHeight: "1.5" }}>
+                  Care workers simply tap to check in when they arrive. You instantly know who's
+                  where, when they arrived, and if they're running late. It's that simple.
+                </Paragraph>
+                <Space direction="vertical" size="small">
+                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ One-tap check-in</Text>
+                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Instant notifications</Text>
+                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Real-time location updates</Text>
+                </Space>
+              </Space>
+            </Col>
+            <Col xs={24} lg={12}>
+              <div style={{ textAlign: "center" }}>
+                <img
+                  src="/feature-one.png"
+                  alt="Location Check-in"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: "12px",
+                  }}
+                />
+              </div>
+            </Col>
+
+            {/* Feature 2 */}
+            <Col xs={24} lg={12}>
+              <div style={{ textAlign: "center" }}>
+                <img
+                  src="/feature-two.png"
+                  alt="Analytics Dashboard"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: "12px",
+                  }}
+                />
+              </div>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Space direction="vertical" size="large">
+                <div
+                  style={{
+                    background: "#1890ff",
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "20px",
+                    fontWeight: "bold",
+                    color: "white",
+                  }}
+                >
+                  02
+                </div>
+                <Title level={2} style={{ color: "white", marginBottom: "8px", fontSize: "2.5rem", lineHeight: "2.5rem" }}>
+                  Get the reports you need, when you need them
+                </Title>
+                <Paragraph style={{ color: "rgba(255,255,255,0.8)", fontSize: "18px", lineHeight: "1.5" }}>
+                  Click a button, get a report. See who worked where, for how long, and when. Perfect for payroll,
+                  compliance, or just keeping track of your team's daily activities.
+                </Paragraph>
+                <Space direction="vertical" size="small">
+                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ One-click reports</Text>
+                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Simple daily summaries</Text>
+                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Easy payroll export</Text>
+                </Space>
+              </Space>
+            </Col>
+           
+
+                   {/* Feature 3*/}
+            <Col xs={24} lg={12}>
+              <Space direction="vertical" size="large">
+                <div
+                  style={{
+                    background: "#1890ff",
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "20px",
+                    fontWeight: "bold",
+                    color: "white",
+                  }}
+                >
+                  03
+                </div>
+                <Title level={2} style={{ color: "white", marginBottom: "8px", fontSize: "2.5rem", lineHeight: "2.5rem" }}>
+                  Works on any phone, anywhere
+                </Title>
+                <Paragraph style={{ color: "rgba(255,255,255,0.8)", fontSize: "18px", lineHeight: "1.5" }}>
+                Your care workers already have phones. That's all they need. No special equipment, no complicated
+                setup. Just download the app and start tracking shifts immediately.
+                </Paragraph>
+                <Space direction="vertical" size="small">
+                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Works on iPhone and Android</Text>
+                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Set up in minutes, not hours</Text>
+                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Simple, clean interface anyone can use</Text>
+                </Space>
+              </Space>
+            </Col>
+            <Col xs={24} lg={12}>
+              <div style={{ textAlign: "center" }}>
+                <img
+                  src="/feature-three.png"
+                  alt="Intuitive Access"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: "12px",
+                  }}
+                />
+              </div>
+            </Col>
+          </Row>
+        </div>
+
+        {/* Stats Section */}
+        <div style={{ padding: "80px 50px", background: "#f2f0ef" }}>
+          <Row gutter={[32, 32]} justify="center">
+            <Col xs={12} md={6} style={{ textAlign: "center" }}>
+              <Statistic
+                title="Healthcare Organizations"
+                value={500}
+                suffix="+"
+                valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
+                style={{ marginBottom: "8px" }}
+              />
+            </Col>
+            <Col xs={12} md={6} style={{ textAlign: "center" }}>
+              <Statistic
+                title="Care Workers Managed"
+                value={25000}
+                suffix="+"
+                valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
+              />
+            </Col>
+            <Col xs={12} md={6} style={{ textAlign: "center" }}>
+              <Statistic
+                title="Hours Tracked"
+                value={2.5}
+                suffix="M+"
+                valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
+              />
+            </Col>
+            <Col xs={12} md={6} style={{ textAlign: "center" }}>
+              <Statistic
+                title="Accuracy Rate"
+                value={99.8}
+                suffix="%"
+                valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
+              />
+            </Col>
+          </Row>
+        </div>
+
         {/* Testimonials Section */}
-        <div style={{ padding: "100px 50px" }}>
+        <div style={{ padding: "100px 50px", background: "#f2f0ef" }}>
           <Row justify="center" style={{ marginBottom: "80px" }}>
             <Col xs={24} md={16} lg={12} style={{ textAlign: "center" }}>
-              <Title level={2} style={{ fontSize: "2.5rem", marginBottom: "24px" }}>
+              <Title level={2} style={{ fontSize: "2.5rem", marginBottom: "24px", fontWeight: 600 }}>
                 Trusted by Healthcare Leaders
               </Title>
             </Col>
@@ -377,10 +373,17 @@ export default function LandingPage() {
 
           <Row gutter={[40, 40]}>
             <Col xs={24} md={8}>
-              <Card style={{ height: "100%", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
+              <Card
+                style={{
+                  height: "100%",
+                  border: "none",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                  borderRadius: "12px",
+                }}
+              >
                 <Space direction="vertical" size="large">
-                  <Paragraph style={{ fontSize: "1.1rem", fontStyle: "italic", color: "#666" }}>
-                    "ShiftGuard has revolutionized how we manage our care staff. The location-based check-ins ensure
+                  <Paragraph style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}>
+                    "CarePin has revolutionized how we manage our care staff. The location-based check-ins ensure
                     accountability while the dashboard gives us real-time insights."
                   </Paragraph>
                   <Space>
@@ -388,7 +391,9 @@ export default function LandingPage() {
                       SM
                     </Avatar>
                     <div>
-                      <Text strong>Sarah Mitchell</Text>
+                      <Text strong style={{ color: "#1a1a1a" }}>
+                        Sarah Mitchell
+                      </Text>
                       <br />
                       <Text type="secondary">Operations Director, CareFirst Health</Text>
                     </div>
@@ -397,18 +402,27 @@ export default function LandingPage() {
               </Card>
             </Col>
             <Col xs={24} md={8}>
-              <Card style={{ height: "100%", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
+              <Card
+                style={{
+                  height: "100%",
+                  border: "none",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                  borderRadius: "12px",
+                }}
+              >
                 <Space direction="vertical" size="large">
-                  <Paragraph style={{ fontSize: "1.1rem", fontStyle: "italic", color: "#666" }}>
+                  <Paragraph style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}>
                     "The mobile-first design is perfect for our field workers. They can easily clock in and add notes,
                     making our operations much more efficient."
                   </Paragraph>
                   <Space>
-                    <Avatar size={48} style={{ backgroundColor: "#52c41a" }}>
+                    <Avatar size={48} style={{ backgroundColor: "#1890ff" }}>
                       DJ
                     </Avatar>
                     <div>
-                      <Text strong>Dr. James Wilson</Text>
+                      <Text strong style={{ color: "#1a1a1a" }}>
+                        Dr. James Wilson
+                      </Text>
                       <br />
                       <Text type="secondary">Medical Director, HealthCare Plus</Text>
                     </div>
@@ -417,18 +431,27 @@ export default function LandingPage() {
               </Card>
             </Col>
             <Col xs={24} md={8}>
-              <Card style={{ height: "100%", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
+              <Card
+                style={{
+                  height: "100%",
+                  border: "none",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                  borderRadius: "12px",
+                }}
+              >
                 <Space direction="vertical" size="large">
-                  <Paragraph style={{ fontSize: "1.1rem", fontStyle: "italic", color: "#666" }}>
-                    "Implementation was seamless and the support team is outstanding. ShiftGuard has improved our
+                  <Paragraph style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}>
+                    "Implementation was seamless and the support team is outstanding. CarePin has improved our
                     compliance and reduced administrative overhead significantly."
                   </Paragraph>
                   <Space>
-                    <Avatar size={48} style={{ backgroundColor: "#722ed1" }}>
+                    <Avatar size={48} style={{ backgroundColor: "#1890ff" }}>
                       LR
                     </Avatar>
                     <div>
-                      <Text strong>Lisa Rodriguez</Text>
+                      <Text strong style={{ color: "#1a1a1a" }}>
+                        Lisa Rodriguez
+                      </Text>
                       <br />
                       <Text type="secondary">HR Manager, Community Care Network</Text>
                     </div>
@@ -442,7 +465,7 @@ export default function LandingPage() {
         {/* CTA Section */}
         <div
           style={{
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            background: "#1890ff",
             padding: "100px 50px",
             textAlign: "center",
             color: "white",
@@ -450,17 +473,18 @@ export default function LandingPage() {
         >
           <Row justify="center">
             <Col xs={24} md={16} lg={12}>
-              <Title level={2} style={{ color: "white", fontSize: "2.5rem", marginBottom: "24px" }}>
-                Ready to Transform Your Care Management?
+              <Title level={2} style={{ color: "white", fontSize: "2.5rem", marginBottom: "24px", fontWeight: 600 }}>
+                Ready to Make Care Tracking Simple?
               </Title>
               <Paragraph
                 style={{
-                  fontSize: "1.25rem",
+                  fontSize: "1.2rem",
                   color: "rgba(255,255,255,0.9)",
                   marginBottom: "40px",
+                  lineHeight: "1.6",
                 }}
               >
-                Join hundreds of healthcare organizations already using ShiftGuard to streamline their operations.
+                Join hundreds of care organizations who chose the simple solution that just works.
               </Paragraph>
               <Form
                 form={form}
@@ -478,7 +502,7 @@ export default function LandingPage() {
                   <Input
                     placeholder="Enter your work email"
                     size="large"
-                    style={{ width: "300px" }}
+                    style={{ borderRadius: "6px" }}
                     prefix={<MailOutlined />}
                   />
                 </Form.Item>
@@ -490,8 +514,9 @@ export default function LandingPage() {
                     style={{
                       background: "white",
                       borderColor: "white",
-                      color: "#667eea",
-                      fontWeight: "bold",
+                      color: "#1890ff",
+                      fontWeight: 600,
+                      borderRadius: "6px",
                     }}
                   >
                     Start Free Trial
@@ -520,7 +545,7 @@ export default function LandingPage() {
               <Space align="center">
                 <SafetyOutlined style={{ fontSize: "24px", color: "#1890ff" }} />
                 <Title level={4} style={{ color: "white", margin: 0 }}>
-                  ShiftGuard
+                  CarePin
                 </Title>
               </Space>
               <Paragraph style={{ color: "rgba(255,255,255,0.7)" }}>
@@ -562,7 +587,7 @@ export default function LandingPage() {
             <Space direction="vertical">
               <Space>
                 <MailOutlined style={{ color: "#1890ff" }} />
-                <Text style={{ color: "rgba(255,255,255,0.7)" }}>hello@shiftguard.com</Text>
+                <Text style={{ color: "rgba(255,255,255,0.7)" }}>hello@CarePin.com</Text>
               </Space>
               <Space>
                 <PhoneOutlined style={{ color: "#1890ff" }} />
@@ -574,7 +599,7 @@ export default function LandingPage() {
         <Divider style={{ borderColor: "rgba(255,255,255,0.2)", margin: "40px 0 20px" }} />
         <Row justify="space-between" align="middle">
           <Col>
-            <Text style={{ color: "rgba(255,255,255,0.7)" }}>© 2024 ShiftGuard. All rights reserved.</Text>
+            <Text style={{ color: "rgba(255,255,255,0.7)" }}>© 2024 CarePin. All rights reserved.</Text>
           </Col>
           <Col>
             <Space>

@@ -1,3 +1,10 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+
 /* Custom styles for better mobile responsiveness and visual polish */
 @media (max-width: 768px) {
     .ant-layout-header {
