@@ -26,6 +26,10 @@ import {
 } from "@ant-design/icons"
 import UserButton from '@/components/UserButton';
 import Image from "next/image";
+import HeroImage from "../../public/hero-img.png";
+import FeatureOne from "../../public/feature-one.png";
+import FeatureTwo from "../../public/feature-two.png";
+// import FeatureThree from "/feature-three.png";
 
 const { Header, Content, Footer } = Layout
 const { Title, Paragraph, Text } = Typography
@@ -146,7 +150,7 @@ export default function LandingPage() {
             <Col xs={24} lg={12}>
               <div style={{ textAlign: "center" }}>
                 <Image
-                  src="/hero-Image.png"
+                  src={HeroImage}
                   alt="CarePin"
                   style={{
                     width: "100%",
@@ -215,7 +219,7 @@ export default function LandingPage() {
             <Col xs={24} lg={12}>
               <div style={{ textAlign: "center" }}>
                 <Image
-                  src="/feature-one.png"
+                  src={FeatureOne}
                   alt="Location Check-in"
                   style={{
                     width: "100%",
@@ -230,7 +234,7 @@ export default function LandingPage() {
             <Col xs={24} lg={12}>
               <div style={{ textAlign: "center" }}>
                 <Image
-                  src="/feature-two.png"
+                  src={FeatureTwo}
                   alt="Analytics Dashboard"
                   style={{
                     width: "100%",
@@ -310,7 +314,7 @@ export default function LandingPage() {
             <Col xs={24} lg={12}>
               <div style={{ textAlign: "center" }}>
                 <Image
-                  src="/feature-three.png"
+                  src={FeatureOne}
                   alt="Intuitive Access"
                   style={{
                     width: "100%",
