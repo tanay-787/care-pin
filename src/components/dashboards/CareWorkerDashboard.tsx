@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useQuery, useMutation } from "@apollo/client"
 import {
   Card,
@@ -24,7 +24,8 @@ import {
   Alert,
   message,
   Divider,
-  ConfigProvider,
+  ConfigProvider
+
 } from "antd"
 import {
   UserOutlined,
@@ -104,17 +105,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
     },
   })
 
-  useEffect(() => {
-    if (shiftsData?.getUserShifts) {
-      const activeShift = shiftsData.getUserShifts.find((shift: any) => shift.status === "CLOCKED_IN")
-      setCurrentShift(activeShift || null)
-    }
-
-    // Simulate getting current location
-    getCurrentLocation()
-  }, [shiftsData])
-
-  const getCurrentLocation = async () => {
+  const getCurrentLocation = useCallback(async () => {
     setLocationLoading(true)
 
     try {
@@ -142,7 +133,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
     } catch (error) {
       setMockLocation()
     }
-  }
+  }, []); // Empty dependency array because setLocationLoading and setMockLocation are stable
 
   const setMockLocation = async () => {
     // Simulate GPS delay
@@ -158,6 +149,17 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
     setLocation(mockCurrentLocation)
     setLocationLoading(false)
   }
+
+  useEffect(() => {
+    if (shiftsData?.getUserShifts) {
+      const activeShift = shiftsData.getUserShifts.find((shift: any) => shift.status === "CLOCKED_IN")
+      setCurrentShift(activeShift || null)
+    }
+
+    // Simulate getting current location
+    getCurrentLocation()
+  }, [shiftsData,getCurrentLocation])
+ 
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371 // Earth's radius in km

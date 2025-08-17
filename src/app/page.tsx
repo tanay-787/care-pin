@@ -25,6 +25,7 @@ import {
   PlayCircleOutlined,
 } from "@ant-design/icons"
 import UserButton from '@/components/UserButton';
+import Image from "next/image";
 
 const { Header, Content, Footer } = Layout
 const { Title, Paragraph, Text } = Typography
@@ -144,8 +145,8 @@ export default function LandingPage() {
             </Col>
             <Col xs={24} lg={12}>
               <div style={{ textAlign: "center" }}>
-                <img
-                  src="/hero-img.png"
+                <Image
+                  src="/hero-Image.png"
                   alt="CarePin"
                   style={{
                     width: "100%",
@@ -201,8 +202,8 @@ export default function LandingPage() {
                   No more guessing games!
                 </Title>
                 <Paragraph style={{ color: "rgba(255,255,255,0.8)", fontSize: "18px", lineHeight: "1.5" }}>
-                  Care workers simply tap to check in when they arrive. You instantly know who's
-                  where, when they arrived, and if they're running late. It's that simple.
+                  Care workers simply tap to check in when they arrive. You instantly know who`&apos;`s
+                  where, when they arrived, and if they`&apos;`re running late. It`&apos;`s that simple.
                 </Paragraph>
                 <Space direction="vertical" size="small">
                   <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ One-tap check-in</Text>
@@ -213,7 +214,7 @@ export default function LandingPage() {
             </Col>
             <Col xs={24} lg={12}>
               <div style={{ textAlign: "center" }}>
-                <img
+                <Image
                   src="/feature-one.png"
                   alt="Location Check-in"
                   style={{
@@ -228,7 +229,7 @@ export default function LandingPage() {
             {/* Feature 2 */}
             <Col xs={24} lg={12}>
               <div style={{ textAlign: "center" }}>
-                <img
+                <Image
                   src="/feature-two.png"
                   alt="Analytics Dashboard"
                   style={{
@@ -262,7 +263,7 @@ export default function LandingPage() {
                 </Title>
                 <Paragraph style={{ color: "rgba(255,255,255,0.8)", fontSize: "18px", lineHeight: "1.5" }}>
                   Click a button, get a report. See who worked where, for how long, and when. Perfect for payroll,
-                  compliance, or just keeping track of your team's daily activities.
+                  compliance, or just keeping track of your team`&apos;`s daily activities.
                 </Paragraph>
                 <Space direction="vertical" size="small">
                   <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ One-click reports</Text>
@@ -296,7 +297,7 @@ export default function LandingPage() {
                   Works on any phone, anywhere
                 </Title>
                 <Paragraph style={{ color: "rgba(255,255,255,0.8)", fontSize: "18px", lineHeight: "1.5" }}>
-                Your care workers already have phones. That's all they need. No special equipment, no complicated
+                Your care workers already have phones. That`&apos;`s all they need. No special equipment, no complicated
                 setup. Just download the app and start tracking shifts immediately.
                 </Paragraph>
                 <Space direction="vertical" size="small">
@@ -308,7 +309,7 @@ export default function LandingPage() {
             </Col>
             <Col xs={24} lg={12}>
               <div style={{ textAlign: "center" }}>
-                <img
+                <Image
                   src="/feature-three.png"
                   alt="Intuitive Access"
                   style={{
@@ -383,8 +384,8 @@ export default function LandingPage() {
               >
                 <Space direction="vertical" size="large">
                   <Paragraph style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}>
-                    "CarePin has revolutionized how we manage our care staff. The location-based check-ins ensure
-                    accountability while the dashboard gives us real-time insights."
+                    `&quot;`CarePin has revolutionized how we manage our care staff. The location-based check-ins ensure
+                    accountability while the dashboard gives us real-time insights.`&quot;`
                   </Paragraph>
                   <Space>
                     <Avatar size={48} style={{ backgroundColor: "#1890ff" }}>
@@ -412,8 +413,8 @@ export default function LandingPage() {
               >
                 <Space direction="vertical" size="large">
                   <Paragraph style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}>
-                    "The mobile-first design is perfect for our field workers. They can easily clock in and add notes,
-                    making our operations much more efficient."
+                  `&quot;`The mobile-first design is perfect for our field workers. They can easily clock in and add notes,
+                    making our operations much more efficient.`&quot;`
                   </Paragraph>
                   <Space>
                     <Avatar size={48} style={{ backgroundColor: "#1890ff" }}>
@@ -441,8 +442,8 @@ export default function LandingPage() {
               >
                 <Space direction="vertical" size="large">
                   <Paragraph style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}>
-                    "Implementation was seamless and the support team is outstanding. CarePin has improved our
-                    compliance and reduced administrative overhead significantly."
+                  `&quot;`Implementation was seamless and the support team is outstanding. CarePin has improved our
+                    compliance and reduced administrative overhead significantly.`&quot;`
                   </Paragraph>
                   <Space>
                     <Avatar size={48} style={{ backgroundColor: "#1890ff" }}>

@@ -282,7 +282,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                   { text: 'Manager', value: 'MANAGER' },
                   { text: 'Care Worker', value: 'CARE_WORKER' },
                 ],
-                onFilter: (value: string, record: any) => record.role === value,
+                onFilter: (value: string | boolean | number | bigint, record: any) => record.role === value,
                 render: (role: "MANAGER" | "CARE_WORKER") => (
                   <Tag color={role === "MANAGER" ? "blue" : "green"}>
                     {role === "MANAGER" ? "Manager" : "Care Worker"}
@@ -481,7 +481,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <div style={{ marginBottom: 24 }}>
         <Title level={2}>Manager Dashboard</Title>
-        <Text type="secondary">Welcome back, {user.name}. Here's your staff overview and management tools.</Text>
+        <Text type="secondary">Welcome back, {user.name}. Here`&apos;`s your staff overview and management tools.</Text>
       </div>
       <UserButton />
       </div>

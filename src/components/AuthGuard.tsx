@@ -75,7 +75,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ managerDashboard, careWorkerDashb
           
           router.refresh();// Assume authorized if role is now present
       }
-  }, [updateRoleLoading, userLoading, currentUserData]);
+  }, [updateRoleLoading, userLoading, currentUserData, router]);
 
 
   const handleRoleSelect = (e: any) => { 

@@ -9,7 +9,6 @@ import "@ant-design/v5-patch-for-react-19"
 export const metadata: Metadata = {
   title: "Care Worker Shift Tracking",
   description: "Track care worker shifts with location-based check-ins",
-  generator: "v0.dev",
 }
 
 export default function RootLayout({
