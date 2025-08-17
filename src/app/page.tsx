@@ -29,6 +29,8 @@ import Image from "next/image";
 import HeroImage from "../../public/hero-img.png";
 import FeatureOne from "../../public/feature-one.png";
 import FeatureTwo from "../../public/feature-two.png";
+import Logo from "../../public/logo.png"
+import { useRouter } from "next/navigation";
 // import FeatureThree from "/feature-three.png";
 
 const { Header, Content, Footer } = Layout
@@ -36,6 +38,7 @@ const { Title, Paragraph, Text } = Typography
 
 export default function LandingPage() {
   const [form] = Form.useForm()
+  const router = useRouter();
 
   const handleSubmit = (values: any) => {
     message.success("Thank you for your interest! We'll be in touch soon.")
@@ -43,328 +46,419 @@ export default function LandingPage() {
   }
 
   return (
-    <Layout style={{ minHeight: "100vh", margin: "0" }}>
+    <Layout style={{ minHeight: "100vh", margin: "0", background: "#f2f0ef" }}>
       {/* Header */}
-      <Header
+      <div
+      className="Header"
         style={{
-          background: "#f2f0ef",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
           position: "fixed",
-          width: "100%",
+          top: "16px",
+          left: "50%",
+          transform: "translateX(-50%)",
           zIndex: 1000,
-          padding: "0 50px",
+          width: "calc(100% - 2rem)",
+          maxWidth: "480px",
+          background: "transparent"
+        }}>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      background: "#f2f0ef",
+      borderRadius: "999px", // capsule
+      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+      padding: "0 20px",
+      height: "56px",
+      minWidth: "280px",
+      maxWidth: "480px",
+      width: "100%",
+    }}
+  >
+    {/* Brand */}
+    <Space align="center">
+      <Image
+        src={Logo}
+        alt="CarePin"
+        style={{ height: "2rem", width: "2rem" }}
+      />
+      <Title
+        level={2}
+        style={{
+          margin: 0,
+          color: "#1890ff",
+          fontWeight: 700,
+          lineHeight: "1",
         }}
       >
-        <Row justify="space-between" align="bottom" style={{ height: "64px" }}>
-          <Col>
-            <Space align="baseline">
-              <img src="/logo.png" alt="CarePin" style={{ margin: 0, height: "2rem", width: "2rem"}} />
-              <Title level={2} style={{ margin: 0, color: "#1890ff", fontWeight: 700 }}>
-                CarePin
-              </Title>
-            </Space>
-          </Col>
-          <Col>
-            <Space size="large">
-              <Button type="text" style={{ color: "#666" }}>
-                Features
-              </Button>
-              <Button type="text" style={{ color: "#666" }}>
-                Pricing
-              </Button>
-              <Button type="text" style={{ color: "#666" }}>
-                Resources
-              </Button>
-              <Button type="text" style={{ color: "#666" }}>
-                About
-              </Button>
-             <UserButton />
-            </Space>
-          </Col>
-        </Row>
-      </Header>
+        CarePin
+      </Title>
+    </Space>
 
-      <Content style={{ marginTop: "64px" }}>
+    {/* User Button */}
+    <UserButton />
+  </div>
+</div>
+
+
+
+      <Content style={{ marginTop: "64px", background: "#f2f0ef" }}>
         {/* Hero Section */}
-        <div style={{ padding: "100px 50px", background: "#f2f0ef" }}>
-          <Row gutter={[60, 60]} align="middle">
-            <Col xs={24} lg={12}>
-              <Space direction="vertical" size="large" style={{ width: "100%" }}>
-                <Title
-                  level={1}
-                  style={{
-                    fontSize: "4rem",
-                    lineHeight: "4rem",
-                    color: "#1a1a1a",
-                    fontWeight: 700,
-                    margin: 0,
-                  }}
-                >
-                  CareWorker Tracking Made Simple
-                </Title>
-                <Paragraph
-                  style={{
-                    fontSize: "1rem",
-                    color: "#666",
-                    lineHeight: "1.5",
-                    marginBottom: "16px",
-                  }}
-                >
-                  Know where your care workers are and when they arrive. Simple location tracking that just works, so
-                  you can focus on what matters most - providing great care.
-                </Paragraph>
-                <Space size="large">
-                  <Button
-                    type="primary"
-                    size="large"
-                    style={{
-                      height: "48px",
-                      fontSize: "16px",
-                      padding: "0 32px",
-                      borderRadius: "6px",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Get Started
-                  </Button>
-                  <Button
-                    size="large"
-                    icon={<PlayCircleOutlined />}
-                    style={{
-                      height: "48px",
-                      fontSize: "16px",
-                      padding: "0 32px",
-                      borderColor: "#d9d9d9",
-                      color: "#666",
-                      borderRadius: "6px",
-                    }}
-                  >
-                    Watch Demo
-                  </Button>
-                </Space>
-                <Paragraph style={{ fontSize: "14px", color: "#999", marginTop: "16px" }}>
-                  Trusted by 500+ care organizations who wanted something simple that works
-                </Paragraph>
-              </Space>
-            </Col>
-            <Col xs={24} lg={12}>
-              <div style={{ textAlign: "center" }}>
-                <Image
-                  src={HeroImage}
-                  alt="CarePin"
-                  style={{
-                    width: "100%",
-                    height: "auto",
-                    borderRadius: "12px",
-                  }}
-                />
-              </div>
-            </Col>
-          </Row>
-        </div>
+
+<div style={{ padding: "80px 24px", background: "#f2f0ef" }}>
+  <Row gutter={[48, 48]} align="middle">
+    {/* Text Column */}
+    <Col xs={24} md={12}>
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <Title
+          level={1}
+          style={{
+            fontSize: "clamp(2rem, 4vw, 3.8rem)", // responsive scaling
+            lineHeight: "1.25", // Golden ratio for readability
+            color: "#1a1a1a",
+            fontWeight: 700,
+            margin: 0,
+          }}
+        >
+          CareWorker Tracking Made Simple
+        </Title>
+
+        <Paragraph
+          style={{
+            fontSize: "clamp(0.9rem, 1.5vw, 1.2rem)",
+            color: "#666",
+            lineHeight: 1.6,
+            maxWidth: "40ch", // keeps optimal reading width
+          }}
+        >
+          Know where your care workers are and when they arrive. Simple
+          location tracking that just works, so you can focus on what
+          matters most - providing great care.
+        </Paragraph>
+
+        {/* Buttons */}
+        <Space size="middle" wrap>
+          <Button
+            type="primary"
+            size="large"
+            style={{
+              height: "48px",
+              fontSize: "1rem",
+              padding: "0 2rem",
+              borderRadius: "8px",
+              fontWeight: 600,
+            }}
+            onClick={() => {
+              router.push("/dashboard")
+            }}
+          >
+            Get Started
+          </Button>
+          <Button
+            size="large"
+            icon={<PlayCircleOutlined />}
+            style={{
+              height: "48px",
+              fontSize: "1rem",
+              padding: "0 2rem",
+              borderColor: "#d9d9d9",
+              color: "#666",
+              borderRadius: "8px",
+            }}
+          >
+            Watch Demo
+          </Button>
+        </Space>
+
+        <Paragraph
+          style={{
+            fontSize: "0.9rem",
+            color: "#999",
+            marginTop: "1rem",
+          }}
+        >
+          Trusted by 500+ care organizations who wanted something simple
+          that works
+        </Paragraph>
+      </Space>
+    </Col>
+
+    {/* Image Column */}
+    <Col xs={24} md={12}>
+      <div style={{ textAlign: "center" }}>
+        <Image
+          src={HeroImage}
+          alt="CarePin"
+          style={{
+            width: "100%",
+            maxWidth: "600px",
+            height: "auto",
+            borderRadius: "12px",
+          }}
+        />
+      </div>
+    </Col>
+  </Row>
+</div>
+
 
         {/* What Makes CarePin Stand Out Section */}
-        <div style={{ background: "#001529", padding: "100px 50px", color: "white" }}>
-          <Row justify="center" style={{ marginBottom: "80px" }}>
-            <Col xs={24} md={16} style={{ textAlign: "center" }}>
-              <Title
-                level={2}
-                style={{
-                  color: "white",
-                  fontSize: "3.2rem",
-                  lineHeight: "3.2rem",
-                  fontWeight: 600,
-                  marginBottom: "24px",
-                }}
-              >
-                What Makes CarePin Stand Out?
-              </Title>
-            </Col>
-          </Row>
+<div style={{ background: "#001529", padding: "80px 24px", color: "white" }}>
+  {/* Section Title */}
+  <Row justify="center" style={{ marginBottom: "64px" }}>
+    <Col xs={24} md={18} lg={14} style={{ textAlign: "center" }}>
+      <Title
+        level={2}
+        style={{
+          color: "white",
+          fontSize: "clamp(1.8rem, 3vw, 3rem)", // responsive scaling
+          lineHeight: 1.25,
+          fontWeight: 600,
+          marginBottom: "1rem",
+        }}
+      >
+        What Makes CarePin Stand Out?
+      </Title>
+    </Col>
+  </Row>
 
-          <Row gutter={[60, 80]}>
-            {/* Feature 1 */}
-            <Col xs={24} lg={12}>
-              <Space direction="vertical" size="large">
-                <div
-                  style={{
-                    background: "#1890ff",
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "20px",
-                    fontWeight: "bold",
-                    color: "white",
-                  }}
-                >
-                  01
-                </div>
-                <Title level={2} style={{ color: "white", marginBottom: "8px", fontSize: "2.5rem", lineHeight: "2.5rem" }}>
-                  No more guessing games!
-                </Title>
-                <Paragraph style={{ color: "rgba(255,255,255,0.8)", fontSize: "18px", lineHeight: "1.5" }}>
-                  Care workers simply tap to check in when they arrive. You instantly know who`&apos;`s
-                  where, when they arrived, and if they`&apos;`re running late. It`&apos;`s that simple.
-                </Paragraph>
-                <Space direction="vertical" size="small">
-                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ One-tap check-in</Text>
-                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Instant notifications</Text>
-                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Real-time location updates</Text>
-                </Space>
-              </Space>
-            </Col>
-            <Col xs={24} lg={12}>
-              <div style={{ textAlign: "center" }}>
-                <Image
-                  src={FeatureOne}
-                  alt="Location Check-in"
-                  style={{
-                    width: "100%",
-                    height: "auto",
-                    borderRadius: "12px",
-                  }}
-                />
-              </div>
-            </Col>
-
-            {/* Feature 2 */}
-            <Col xs={24} lg={12}>
-              <div style={{ textAlign: "center" }}>
-                <Image
-                  src={FeatureTwo}
-                  alt="Analytics Dashboard"
-                  style={{
-                    width: "100%",
-                    height: "auto",
-                    borderRadius: "12px",
-                  }}
-                />
-              </div>
-            </Col>
-            <Col xs={24} lg={12}>
-              <Space direction="vertical" size="large">
-                <div
-                  style={{
-                    background: "#1890ff",
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "20px",
-                    fontWeight: "bold",
-                    color: "white",
-                  }}
-                >
-                  02
-                </div>
-                <Title level={2} style={{ color: "white", marginBottom: "8px", fontSize: "2.5rem", lineHeight: "2.5rem" }}>
-                  Get the reports you need, when you need them
-                </Title>
-                <Paragraph style={{ color: "rgba(255,255,255,0.8)", fontSize: "18px", lineHeight: "1.5" }}>
-                  Click a button, get a report. See who worked where, for how long, and when. Perfect for payroll,
-                  compliance, or just keeping track of your team`&apos;`s daily activities.
-                </Paragraph>
-                <Space direction="vertical" size="small">
-                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ One-click reports</Text>
-                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Simple daily summaries</Text>
-                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Easy payroll export</Text>
-                </Space>
-              </Space>
-            </Col>
-           
-
-                   {/* Feature 3*/}
-            <Col xs={24} lg={12}>
-              <Space direction="vertical" size="large">
-                <div
-                  style={{
-                    background: "#1890ff",
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "20px",
-                    fontWeight: "bold",
-                    color: "white",
-                  }}
-                >
-                  03
-                </div>
-                <Title level={2} style={{ color: "white", marginBottom: "8px", fontSize: "2.5rem", lineHeight: "2.5rem" }}>
-                  Works on any phone, anywhere
-                </Title>
-                <Paragraph style={{ color: "rgba(255,255,255,0.8)", fontSize: "18px", lineHeight: "1.5" }}>
-                Your care workers already have phones. That`&apos;`s all they need. No special equipment, no complicated
-                setup. Just download the app and start tracking shifts immediately.
-                </Paragraph>
-                <Space direction="vertical" size="small">
-                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Works on iPhone and Android</Text>
-                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Set up in minutes, not hours</Text>
-                  <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Simple, clean interface anyone can use</Text>
-                </Space>
-              </Space>
-            </Col>
-            <Col xs={24} lg={12}>
-              <div style={{ textAlign: "center" }}>
-                <Image
-                  src={FeatureOne}
-                  alt="Intuitive Access"
-                  style={{
-                    width: "100%",
-                    height: "auto",
-                    borderRadius: "12px",
-                  }}
-                />
-              </div>
-            </Col>
-          </Row>
+  {/* Feature Rows */}
+  <Row gutter={[48, 64]} align="middle">
+    {/* Feature 1 */}
+    <Col xs={24} lg={12}>
+      <Space direction="vertical" size="large">
+        <div
+          style={{
+            background: "#1890ff",
+            width: "48px",
+            height: "48px",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "18px",
+            fontWeight: "bold",
+            color: "white",
+          }}
+        >
+          01
         </div>
+        <Title
+          level={3}
+          style={{
+            color: "white",
+            fontSize: "clamp(1.5rem, 2.2vw, 2.2rem)",
+            lineHeight: 1.3,
+          }}
+        >
+          No more guessing games!
+        </Title>
+        <Paragraph
+          style={{
+            color: "rgba(255,255,255,0.85)",
+            fontSize: "clamp(0.95rem, 1.4vw, 1.1rem)",
+            lineHeight: 1.6,
+            maxWidth: "50ch",
+          }}
+        >
+          Care workers simply tap to check in when they arrive. You instantly 
+          know who’s where, when they arrived, and if they’re running late.
+        </Paragraph>
+        <Space direction="vertical" size={4}>
+          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ One-tap check-in</Text>
+          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Instant notifications</Text>
+          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Real-time location updates</Text>
+        </Space>
+      </Space>
+    </Col>
+    <Col xs={24} lg={12}>
+      <div style={{ textAlign: "center" }}>
+        <Image
+          src={FeatureOne}
+          alt="Location Check-in"
+          style={{
+            width: "100%",
+            maxWidth: "520px",
+            height: "auto",
+            borderRadius: "12px",
+          }}
+        />
+      </div>
+    </Col>
 
-        {/* Stats Section */}
-        <div style={{ padding: "80px 50px", background: "#f2f0ef" }}>
-          <Row gutter={[32, 32]} justify="center">
-            <Col xs={12} md={6} style={{ textAlign: "center" }}>
-              <Statistic
-                title="Healthcare Organizations"
-                value={500}
-                suffix="+"
-                valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
-                style={{ marginBottom: "8px" }}
-              />
-            </Col>
-            <Col xs={12} md={6} style={{ textAlign: "center" }}>
-              <Statistic
-                title="Care Workers Managed"
-                value={25000}
-                suffix="+"
-                valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
-              />
-            </Col>
-            <Col xs={12} md={6} style={{ textAlign: "center" }}>
-              <Statistic
-                title="Hours Tracked"
-                value={2.5}
-                suffix="M+"
-                valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
-              />
-            </Col>
-            <Col xs={12} md={6} style={{ textAlign: "center" }}>
-              <Statistic
-                title="Accuracy Rate"
-                value={99.8}
-                suffix="%"
-                valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
-              />
-            </Col>
-          </Row>
+    {/* Feature 2 */}
+    <Col xs={24} lg={{ span: 12 }}>
+      <div style={{ textAlign: "center" }}>
+        <Image
+          src={FeatureTwo}
+          alt="Analytics Dashboard"
+          style={{
+            width: "100%",
+            maxWidth: "520px",
+            height: "auto",
+            borderRadius: "12px",
+          }}
+        />
+      </div>
+    </Col>
+    <Col xs={24} lg={{ span: 12}}>
+      <Space direction="vertical" size="large">
+        <div
+          style={{
+            background: "#1890ff",
+            width: "48px",
+            height: "48px",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "18px",
+            fontWeight: "bold",
+            color: "white",
+          }}
+        >
+          02
         </div>
+        <Title
+          level={3}
+          style={{
+            color: "white",
+            fontSize: "clamp(1.5rem, 2.2vw, 2.2rem)",
+            lineHeight: 1.3,
+          }}
+        >
+          Get the reports you need, when you need them
+        </Title>
+        <Paragraph
+          style={{
+            color: "rgba(255,255,255,0.85)",
+            fontSize: "clamp(0.95rem, 1.4vw, 1.1rem)",
+            lineHeight: 1.6,
+            maxWidth: "50ch",
+          }}
+        >
+          Click a button, get a report. See who worked where, for how long, 
+          and when. Perfect for payroll, compliance, or just keeping track.
+        </Paragraph>
+        <Space direction="vertical" size={4}>
+          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ One-click reports</Text>
+          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Simple daily summaries</Text>
+          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Easy payroll export</Text>
+        </Space>
+      </Space>
+    </Col>
+
+    {/* Feature 3 */}
+    <Col xs={24} lg={12}>
+      <Space direction="vertical" size="large">
+        <div
+          style={{
+            background: "#1890ff",
+            width: "48px",
+            height: "48px",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "18px",
+            fontWeight: "bold",
+            color: "white",
+          }}
+        >
+          03
+        </div>
+        <Title
+          level={3}
+          style={{
+            color: "white",
+            fontSize: "clamp(1.5rem, 2.2vw, 2.2rem)",
+            lineHeight: 1.3,
+          }}
+        >
+          Works on any phone, anywhere
+        </Title>
+        <Paragraph
+          style={{
+            color: "rgba(255,255,255,0.85)",
+            fontSize: "clamp(0.95rem, 1.4vw, 1.1rem)",
+            lineHeight: 1.6,
+            maxWidth: "50ch",
+          }}
+        >
+          Your care workers already have phones. That’s all they need. No 
+          special equipment, no complicated setup. Just download and start.
+        </Paragraph>
+        <Space direction="vertical" size={4}>
+          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Works on iPhone & Android</Text>
+          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Set up in minutes</Text>
+          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Simple, clean interface</Text>
+        </Space>
+      </Space>
+    </Col>
+    <Col xs={24} lg={12}>
+      <div style={{ textAlign: "center" }}>
+        <Image
+          src={FeatureOne}
+          alt="Intuitive Access"
+          style={{
+            width: "100%",
+            maxWidth: "520px",
+            height: "auto",
+            borderRadius: "12px",
+          }}
+        />
+      </div>
+    </Col>
+  </Row>
+</div>
+
+
+       {/* Stats Section */}
+<div style={{ padding: "64px 32px", background: "#f2f0ef" }}>
+  <div style={{ textAlign: "center", marginBottom: "64px" }}>
+    <h2 style={{ fontSize: "2.6rem", marginBottom: "16px", fontWeight: 600 }}>
+      Our Impact
+    </h2>
+    <p style={{ fontSize: "1.125rem", color: "#666" }}>
+      Helping healthcare providers streamline care delivery
+    </p>
+  </div>
+  <Row gutter={[32, 48]} justify="center">
+    <Col xs={12} md={6} style={{ textAlign: "center" }}>
+      <Statistic
+        title={<span style={{ fontSize: "1.1rem", color: "#444" }}>Healthcare Organizations</span>}
+        value={500}
+        suffix="+"
+        valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
+      />
+    </Col>
+    <Col xs={12} md={6} style={{ textAlign: "center" }}>
+      <Statistic
+        title={<span style={{ fontSize: "1.1rem", color: "#444" }}>Care Workers Managed</span>}
+        value={25000}
+        suffix="+"
+        valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
+      />
+    </Col>
+    <Col xs={12} md={6} style={{ textAlign: "center" }}>
+      <Statistic
+        title={<span style={{ fontSize: "1.1rem", color: "#444" }}>Hours Tracked</span>}
+        value={2.5}
+        suffix="M+"
+        valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
+      />
+    </Col>
+    <Col xs={12} md={6} style={{ textAlign: "center" }}>
+      <Statistic
+        title={<span style={{ fontSize: "1.1rem", color: "#444" }}>Accuracy Rate</span>}
+        value={99.8}
+        suffix="%"
+        valueStyle={{ color: "#1890ff", fontSize: "2.5rem", fontWeight: 600 }}
+      />
+    </Col>
+  </Row>
+</div>
+
 
         {/* Testimonials Section */}
         <div style={{ padding: "100px 50px", background: "#f2f0ef" }}>

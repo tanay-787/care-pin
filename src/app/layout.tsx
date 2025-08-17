@@ -1,8 +1,9 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { ConfigProvider } from "antd"
+import { ConfigProvider, App } from "antd"
 import { Auth0Provider } from "@auth0/nextjs-auth0"
 import { ApolloWrapper } from "@/lib/apollo-wrapper"
+
 import "./globals.css"
 import "@ant-design/v5-patch-for-react-19"
 
@@ -29,7 +30,7 @@ export default function RootLayout({
                 },
               }}
             >
-              {children}
+             <App>{children}</App> 
             </ConfigProvider>
           </ApolloWrapper>
         </Auth0Provider>

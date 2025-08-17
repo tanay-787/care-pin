@@ -1,15 +1,19 @@
 'use client';
 
-import { Dropdown, Menu, Button, Avatar, Typography, Space } from 'antd';
+import { Dropdown, Menu, Button, Avatar, AvatarProps, Typography, Space } from 'antd';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useUser } from '@auth0/nextjs-auth0'; // To get the Auth0 user
 import Link from 'next/link'; // For navigation links (if needed)
 
 const { Text } = Typography;
 
-const UserButton: React.FC = () => {
-  const { user, error, isLoading } = useUser(); // Get the authenticated Auth0 user
+interface UserButtonProps{
+  size?: 'small' | 'large' | 'default';
+}
 
+const UserButton: React.FC<UserButtonProps> = ({ size = 'default'}) => {
+  const { user, error, isLoading } = useUser(); // Get the authenticated Auth0 user
+  
   if (isLoading) {
     // Optional: Show a loading state while fetching user
     return <Button type="text" loading shape="circle" icon={<UserOutlined />} />;
@@ -36,7 +40,7 @@ const UserButton: React.FC = () => {
       {/* User Info Item */}
       <Menu.Item key="user-info" disabled> {/* Disable this item as it's just info */}
         <Space>
-          <Avatar icon={<UserOutlined />} src={user.picture}>{initials}</Avatar> {/* Use user.picture for profile image if available */}
+          <Avatar size={'large'} icon={<UserOutlined />} src={user.picture}>{initials}</Avatar> {/* Use user.picture for profile image if available */}
           <div>
             <Text strong>{user.userName || user.email}</Text> {/* Display name or email */}
             {user.email && <Text type="secondary" style={{ display: 'block' }}>{user.email}</Text>} {/* Display email if available */}
@@ -60,7 +64,7 @@ const UserButton: React.FC = () => {
 
   return (
     <Dropdown overlay={menu} placement="bottomRight" arrow>
-      <Button type="text" size='large' shape="circle" icon={user.picture ? <Avatar src={user.picture} size="small" /> : <Avatar size="small" icon={<UserOutlined />}>{initials}</Avatar>} />
+      <Button type="text" size='large' shape="circle" icon={user.picture ? <Avatar size={size} src={user.picture} /> : <Avatar size={size} icon={<UserOutlined />}>{initials}</Avatar>} />
     </Dropdown>
   );
 };

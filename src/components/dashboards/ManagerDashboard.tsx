@@ -483,7 +483,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
         <Title level={2}>Manager Dashboard</Title>
         <Text type="secondary">Welcome back, {user.name}. Here`&apos;`s your staff overview and management tools.</Text>
       </div>
-      <UserButton />
+      <UserButton size="large" />
       </div>
       <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} size="large" />
     </div>

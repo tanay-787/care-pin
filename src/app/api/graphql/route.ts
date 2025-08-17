@@ -341,8 +341,9 @@ const schema = makeExecutableSchema({
   resolvers,
 })
 
-const yoga = createYoga({
+const { handleRequest } = createYoga({
   schema,
+
   graphqlEndpoint: "/api/graphql",
   fetchAPI: { Response },
   context: async ({ req }: { req: NextRequest }) => { // Accept req as NextRequest
@@ -350,12 +351,7 @@ const yoga = createYoga({
       request: req,
     };
   }
+
 })
 
-export async function GET(request: NextRequest) {
-  return yoga.handleRequest(request, { req: request }) 
-}
-
-export async function POST(request: NextRequest) {
-  return yoga.handleRequest(request, { req: request })
-}
+export { handleRequest as GET, handleRequest as POST }
