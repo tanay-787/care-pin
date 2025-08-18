@@ -70,10 +70,13 @@ const typeDefs = /* GraphQL */ `
     ): LocationPerimeter!
   }
 `
+/**
+ * @description Retrieves Current DBUser from Auth0 Session 
+ */
 
-const getCurrentUserFromSession = async (request: NextRequest) => {
+async function getCurrentUserFromSession() {
   try {
-    const session = await auth0.getSession(request)
+    const session = await auth0.getSession()
     if (!session?.user) return null
 
     // Find or create user in database based on Auth0 user
@@ -88,7 +91,6 @@ const getCurrentUserFromSession = async (request: NextRequest) => {
           auth0Id: session.user.sub,
           email: session.user.email!,
           name: session.user.name || session.user.email!,
-          role: "CARE_WORKER", // Default role, can be updated by manager
         },
       })
     }
@@ -103,57 +105,12 @@ const getCurrentUserFromSession = async (request: NextRequest) => {
 const resolvers = {
   Query: {
     getCurrentUser: async (_: unknown, __: unknown, context: any) => {
-        const session = await auth0.getSession(context.request);
-      
-        if (!session?.user || !session.user.email) {
-          console.log("User not authenticated via Auth0 or email is missing");
-          return null; // Return null if no authenticated user
-        }
-      
-        const auth0UserId = session.user.sub;
-        const userEmail = session.user.email;
-        const userName = session.user.name || userEmail; // Use name from Auth0, fallback to email
-      
-        // Find or create user in your database based on Auth0 user ID
-        let user = await prisma.user.findUnique({
-          where: { auth0Id: auth0UserId },
-        });
-      
-        if (!user) {
-          // User doesn't exist in your database, create the record
-          user = await prisma.user.create({
-            data: {
-              auth0Id: auth0UserId,
-              email: userEmail,
-              name: userName,
-            },
-          });
-           console.log("New user created in DB:", user.email); // Log for debugging
-        } else {
-            // Optional: Update user details from Auth0 if they might have changed
-            // (e.g., name, email if you allow changing email in Auth0)
-            if (user.email !== userEmail || user.name !== userName) {
-                console.log("Updating user details from Auth0:", userEmail); // Log for debugging
-                 await prisma.user.update({
-                     where: { auth0Id: auth0UserId },
-                     data: {
-                         email: userEmail,
-                         name: userName,
-                     },
-                 });
-                 // Re-fetch the user after update to return the latest version
-                 user = await prisma.user.findUnique({
-                     where: { auth0Id: auth0UserId },
-                 });
-            }
-        }
-      
-        // Return the user from your database
-        return user;
-      },
+      return context.currentUser
+    },
+
 
     getAllUsers: async (_: unknown, __: unknown, context: any) => {
-      const currentUser = await getCurrentUserFromSession(context.request)
+      const currentUser = context.currentUser
       if (!currentUser || currentUser.role !== "MANAGER") {
         throw new Error("Manager access required")
       }
@@ -164,11 +121,11 @@ const resolvers = {
     },
 
     getUserShifts: async (_: unknown, { userId }: { userId: string }, context: any) => {
-      const currentUser = await getCurrentUserFromSession(context.request)
+      const currentUser = context.currentUser
       if (!currentUser) throw new Error("Authentication required")
 
       // Users can only see their own shifts unless they're a manager
-      if (currentUser.role !== "MANAGER" && currentUser.id !== userId) {
+      if (currentUser.role !== "MANAGER" || currentUser.id !== userId) {
         throw new Error("Access denied")
       }
 
@@ -180,7 +137,7 @@ const resolvers = {
     },
 
     getAllShifts: async (_: unknown, __: unknown, context: any) => {
-      const currentUser = await getCurrentUserFromSession(context.request)
+      const currentUser = context.currentUser
       if (!currentUser || currentUser.role !== "MANAGER") {
         throw new Error("Manager access required")
       }
@@ -205,7 +162,7 @@ const resolvers = {
       { name, role }: { name: string | null | undefined; role: "MANAGER" | "CARE_WORKER" | undefined },
       context: any,
     ) => {
-      const user = await getCurrentUserFromSession(context.request)
+      const user = context.currentUser
       if (!user) throw new Error("Authentication required")
     
       // Prepare data for update
@@ -240,7 +197,7 @@ const resolvers = {
       { latitude, longitude, notes }: { latitude: number; longitude: number; notes?: string },
       context: any,
     ) => {
-      const user = await getCurrentUserFromSession(context.request)
+      const user = context.currentUser
       if (!user) throw new Error("Authentication required")
 
       return await prisma.shift.create({
@@ -261,7 +218,7 @@ const resolvers = {
       { shiftId, latitude, longitude, notes }: { shiftId: string; latitude: number; longitude: number; notes?: string },
       context: any,
     ) => {
-      const user = await getCurrentUserFromSession(context.request)
+      const user = context.currentUser
       if (!user) throw new Error("Authentication required")
 
       const shift = await prisma.shift.findUnique({
@@ -310,7 +267,7 @@ const resolvers = {
       },
       context: any,
     ) => {
-      const user = await getCurrentUserFromSession(context.request)
+      const user = context.currentUser
       if (!user || user.role !== "MANAGER") {
         throw new Error("Manager access required")
       }
@@ -343,22 +300,16 @@ const schema = makeExecutableSchema({
 
 const { handleRequest } = createYoga({
   schema,
-  maskedErrors: false,
   graphqlEndpoint: "/api/graphql",
   fetchAPI: { Response },
-  context: async ({ req }: { req: NextRequest }) => { // Accept req as NextRequest
-    return {
-      request: req,
-    };
-  }
-
+  context: async ({ request }) => {
+    const currentUser = await getCurrentUserFromSession();
+    return { request, currentUser };
+  }  
 })
 
-export const GET = handleRequest as unknown as (
-  req: Request
-) => Promise<Response>
+export const GET = (req: Request) => handleRequest(req, {});
+export const POST = (req: Request) => handleRequest(req, {});
+export const OPTIONS = (req: Request) => handleRequest(req, {});
 
-export const POST = handleRequest as unknown as (
-  req: Request
-) => Promise<Response>
 
