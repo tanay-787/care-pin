@@ -354,5 +354,11 @@ const { handleRequest } = createYoga({
 
 })
 
-// @ts-ignore
-export { handleRequest as GET, handleRequest as POST }
+export const GET = handleRequest as unknown as (
+  req: Request
+) => Promise<Response>
+
+export const POST = handleRequest as unknown as (
+  req: Request
+) => Promise<Response>
+

@@ -1,4 +1,5 @@
 // utils/getLocation.ts
+"use client"
 export const getUserLocation = (): Promise<{ lat: number; lon: number }> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -26,7 +27,9 @@ export const getUserLocation = (): Promise<{ lat: number; lon: number }> => {
               reject(new Error("An unknown error occurred while retrieving location."));
           }
         },
-        { timeout: 10000 } // 10s timeout
+        { timeout: 10000,
+          enableHighAccuracy: true
+         } // 10s timeout
       );
     });
   };

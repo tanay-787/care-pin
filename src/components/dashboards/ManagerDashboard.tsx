@@ -46,14 +46,15 @@ import {
   CLOCK_OUT,
 } from "@/lib/graphql-queries"
 import UserButton from "@/components/UserButton"
-import LocationMap from "@/components/pwa/LocationMap"
 import Select from "antd/lib/select"
 import { useRouter } from "next/navigation"
+import dynamic from 'next/dynamic';
 
 const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
 const { RangePicker } = DatePicker
 const { useForm } = Form;
+const LocationMap = dynamic(() => import('@/components/pwa/LocationMap'), { ssr: false });
 
 
 export interface User {
@@ -70,6 +71,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
   const [form] = useForm();
   const [messageApi, contextHolder] = message.useMessage();
   const router = useRouter();
+  
 
   // GraphQL queries and mutations
   const { data: usersData, loading: usersLoading } = useQuery(GET_ALL_USERS)

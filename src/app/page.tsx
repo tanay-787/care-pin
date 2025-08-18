@@ -29,9 +29,10 @@ import Image from "next/image";
 import HeroImage from "../../public/hero-img.png";
 import FeatureOne from "../../public/feature-one.png";
 import FeatureTwo from "../../public/feature-two.png";
+import FeatureThree from "../../public/feature-three.png";
 import Logo from "../../public/logo.png"
 import { useRouter } from "next/navigation";
-// import FeatureThree from "/feature-three.png";
+
 
 const { Header, Content, Footer } = Layout
 const { Title, Paragraph, Text } = Typography
@@ -39,13 +40,17 @@ const { Title, Paragraph, Text } = Typography
 export default function LandingPage() {
   const [form] = Form.useForm()
   const router = useRouter();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const handleSubmit = (values: any) => {
-    message.success("Thank you for your interest! We'll be in touch soon.")
+    
+messageApi.success("Thank you for your interest! We'll be in touch soon.")
     form.resetFields()
   }
 
   return (
+    <>
+    {contextHolder}
     <Layout style={{ minHeight: "100vh", margin: "0", background: "#f2f0ef" }}>
       {/* Header */}
       <div
@@ -398,8 +403,8 @@ export default function LandingPage() {
     <Col xs={24} lg={12}>
       <div style={{ textAlign: "center" }}>
         <Image
-          src={FeatureOne}
-          alt="Intuitive Access"
+          src={FeatureThree}
+          alt="Ease of Access"
           style={{
             width: "100%",
             maxWidth: "520px",
@@ -698,7 +703,7 @@ export default function LandingPage() {
         <Divider style={{ borderColor: "rgba(255,255,255,0.2)", margin: "40px 0 20px" }} />
         <Row justify="space-between" align="middle">
           <Col>
-            <Text style={{ color: "rgba(255,255,255,0.7)" }}>© 2024 CarePin. All rights reserved.</Text>
+            <Text style={{ color: "rgba(255,255,255,0.7)" }}>© 2025 CarePin. All rights reserved.</Text>
           </Col>
           <Col>
             <Space>
@@ -709,5 +714,6 @@ export default function LandingPage() {
         </Row>
       </Footer>
     </Layout>
+    </>
   )
 }

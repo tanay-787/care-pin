@@ -48,6 +48,8 @@ import {
   CLOCK_IN,
   CLOCK_OUT,
 } from "@/lib/graphql-queries"
+import { getUserLocation } from "@/lib/get-location"
+import { getAddressFromCoords } from "@/lib/get-address"
 import LocationTracker from "@/components/pwa/LocationTracker"
 
 const { Title, Text, Paragraph } = Typography
@@ -70,6 +72,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
   const [clockAction, setClockAction] = useState<"in" | "out">("in")
   const [note, setNote] = useState("")
   const [activeTab, setActiveTab] = useState("dashboard")
+  const [messageApi, contextHolder] = message.useMessage();
 
   const {
     data: shiftsData,
@@ -87,69 +90,45 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
   const [clockInMutation] = useMutation(CLOCK_IN, {
     onCompleted: (data) => {
       setCurrentShift(data.clockIn)
-      message.success("Successfully clocked in!")
+      messageApi.success("Successfully clocked in!")
       refetchShifts()
     },
     onError: (error) => {
-      message.error(error.message || "Failed to clock in")
+      messageApi.error(error.message || "Failed to clock in")
     },
   })
 
   const [clockOutMutation] = useMutation(CLOCK_OUT, {
     onCompleted: (data) => {
       setCurrentShift(null)
-      message.success("Successfully clocked out!")
+      messageApi.success("Successfully clocked out!")
       refetchShifts()
     },
     onError: (error) => {
-      message.error(error.message || "Failed to clock out")
+      messageApi.error(error.message || "Failed to clock out")
     },
   })
 
   const getCurrentLocation = useCallback(async () => {
-    setLocationLoading(true)
+    setLocationLoading(true);
 
     try {
-      // Try to get real GPS location
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords
-            setLocation({
-              latitude,
-              longitude,
-              address: "Current GPS Location", // In real app, you'd reverse geocode this
-            })
-            setLocationLoading(false)
-          },
-          (error) => {
-            console.warn("GPS not available, using mock location:", error)
-            // Fallback to mock location
-            setMockLocation()
-          },
-        )
-      } else {
-        setMockLocation()
-      }
-    } catch (error) {
-      setMockLocation()
+      const { lat, lon } = await getUserLocation();
+      const address = await getAddressFromCoords(lat, lon);
+
+      setLocation({
+        latitude: lat,
+        longitude: lon,
+        address: address,
+      });
+      setLocationLoading(false);
+    } catch (error: any) {
+      setLocation(null); // Set location to null on error
+      setLocationLoading(false);
+      messageApi.error(error.message || "Failed to get your current location.");
     }
-  }, []); // Empty dependency array because setLocationLoading and setMockLocation are stable
+  }, []);
 
-  const setMockLocation = async () => {
-    // Simulate GPS delay
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    // Mock location with slight variations
-    const mockCurrentLocation = {
-      latitude: 40.7128 + (Math.random() - 0.5) * 0.01,
-      longitude: -74.006 + (Math.random() - 0.5) * 0.01,
-      address: "123 Healthcare Center, New York, NY",
-    }
-
-    setLocation(mockCurrentLocation)
-    setLocationLoading(false)
-  }
 
   useEffect(() => {
     if (shiftsData?.getUserShifts) {
@@ -157,10 +136,9 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
       setCurrentShift(activeShift || null)
     }
 
-    // Simulate getting current location
+    // Get current location when the component mounts and shiftsData changes
     getCurrentLocation()
   }, [shiftsData,getCurrentLocation])
- 
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371 // Earth's radius in km
@@ -176,22 +154,22 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
   const isWithinPerimeter = () => {
     if (!location) return false
 
-    const perimeter = perimeterData?.locationPerimeter
-    if (!perimeter || !perimeter.enabled) return true
+    const perimeter = perimeterData?.getLocationPerimeter
+    if (!perimeter || !perimeter.isActive) return true
 
-    const distance = calculateDistance(location.latitude, location.longitude, perimeter.centerLat, perimeter.centerLng)
+    const distance = calculateDistance(location.latitude, location.longitude, perimeter.centerLatitude, perimeter.centerLongitude)
     return distance <= perimeter.radiusKm
   }
 
   const handleClockAction = (action: "in" | "out") => {
     if (!location) {
-      message.error("Location not available. Please wait for GPS to load.")
+      messageApi.error("Location not available. Please wait for GPS to load.")
       return
     }
 
-    const perimeter = perimeterData?.locationPerimeter
-    if (perimeter?.enabled && !isWithinPerimeter()) {
-      message.error(
+    const perimeter = perimeterData?.getLocationPerimeter
+    if (perimeter?.isActive && !isWithinPerimeter()) {
+      messageApi.error(
         `You are outside the allowed perimeter (${perimeter.radiusKm}km radius). Please move closer to the workplace.`,
       )
       return
@@ -295,7 +273,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
 
   const workerHistory = getWorkerHistory()
   const workerStats = getWorkerStats()
-  const perimeter = perimeterData?.locationPerimeter
+  const perimeter = perimeterData?.getLocationPerimeter
 
   const historyColumns = [
     {
@@ -340,6 +318,8 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
   ]
 
   return (
+    <>
+    {contextHolder}
     <div>
       <Title level={3}>Worker Dashboard</Title>
 
@@ -403,7 +383,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
                     </Tag>
                   </div>
 
-                  {perimeter?.enabled && !isWithinPerimeter() && (
+                  {perimeter?.isActive && !isWithinPerimeter() && (
                     <Alert
                       message="You are outside the allowed perimeter"
                       description={`You must be within ${perimeter.radiusKm}km of ${perimeter.centerAddress} to clock in/out.`}
@@ -412,7 +392,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
                     />
                   )}
 
-                  {!perimeter?.enabled && (
+                  {!perimeter?.isActive && (
                     <Alert
                       message="Location restrictions disabled"
                       description="You can clock in/out from any location."
@@ -475,7 +455,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
               </Button>
             )}
 
-            {((!isWithinPerimeter() && perimeter?.enabled) || locationLoading) && (
+            {((!isWithinPerimeter() && perimeter?.isActive) || locationLoading) && (
               <Text type="secondary" style={{ display: "block", marginTop: "8px", textAlign: "center" }}>
                 {locationLoading ? "Waiting for location..." : "Move closer to workplace to enable clock in/out"}
               </Text>
@@ -565,6 +545,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
         </Space>
       </Modal>
     </div>
+    </>
   )
 }
 
