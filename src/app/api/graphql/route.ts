@@ -343,7 +343,7 @@ const schema = makeExecutableSchema({
 
 const { handleRequest } = createYoga({
   schema,
-
+  maskedErrors: false,
   graphqlEndpoint: "/api/graphql",
   fetchAPI: { Response },
   context: async ({ req }: { req: NextRequest }) => { // Accept req as NextRequest
