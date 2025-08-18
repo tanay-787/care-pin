@@ -49,7 +49,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ managerDashboard, careWorkerDashb
         const userFromDB = currentUserData?.getCurrentUser;
         if (!userFromDB) {
           console.error('User data not found in database:', userFromDB);
-          return;
+          return router.push('/');
         }
         if (!userFromDB.role) {
           setShowRoleSelectionModal(true);
@@ -115,10 +115,11 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ managerDashboard, careWorkerDashb
       console.error('Auth0 Authentication error:', auth0Error);
       return (
           <Result
+              
               status="error"
               title="Authentication Error"
               subTitle={auth0Error.message}
-              extra={<Button type="primary" onClick={() => router.push('/api/auth/login')}>Try Login Again</Button>}
+              extra={<Button type="primary" onClick={() => router.push('/auth/login')}>Try Login Again</Button>}
           />
       );
   }

@@ -48,6 +48,7 @@ import {
   CLOCK_IN,
   CLOCK_OUT,
 } from "@/lib/graphql-queries"
+import LocationTracker from "@/components/pwa/LocationTracker"
 
 const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
@@ -234,30 +235,42 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
     setNoteModalVisible(false)
   }
 
-  const formatDuration = (startTime: string | Date) => {
-    const now = new Date()
-    const start = new Date(startTime)
-    const diff = now.getTime() - start.getTime()
+  const formatDuration = (startTime: string | number) => {
+    const now = Date.now()
+    const start = typeof startTime === "string" ? parseInt(startTime, 10) : startTime
+    const diff = now - start
     const hours = Math.floor(diff / (1000 * 60 * 60))
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
     return `${hours}h ${minutes}m`
   }
+  
 
   const getWorkerHistory = () => {
     if (!shiftsData?.getUserShifts) return []
-
+  
     return shiftsData.getUserShifts
-      .map((shift: any) => ({
-        ...shift,
-        key: shift.id, // Ant Design Table requires a unique key
-        clockInTimeFormatted: new Date(parseInt(shift.clockInTime, 10)).toLocaleString(),
-        clockOutTimeFormatted: shift.clockOutTime ? new Date(parseInt(shift.clockOutTime, 10)).toLocaleString() : "Still clocked in",
-        duration: shift.clockOutTime ? `${Math.round((parseInt(shift.clockOutTime, 10) - parseInt(shift.clockInTime, 10)) / (1000 * 60 * 60) * 100) / 100}h`
-          : formatDuration(shift.clockInTime),
-        totalHours: shift.duration || 0,
-      }))
-      .sort((a: any, b: any) => new Date(b.clockInTime).getTime() - new Date(a.clockInTime).getTime())
+      .map((shift: any) => {
+        const clockIn = parseInt(shift.clockInTime, 10)
+        const clockOut = shift.clockOutTime ? parseInt(shift.clockOutTime, 10) : null
+  
+        const durationHours = clockOut
+          ? (clockOut - clockIn) / (1000 * 60 * 60) // convert ms diff → hours
+          : null
+  
+        return {
+          ...shift,
+          key: shift.id,
+          clockInTimeFormatted: new Date(clockIn).toLocaleString(),
+          clockOutTimeFormatted: clockOut ? new Date(clockOut).toLocaleString() : "Still clocked in",
+          duration: durationHours !== null
+            ? `${durationHours.toFixed(2)}h`
+            : formatDuration(clockIn),
+          totalHours: durationHours !== null ? durationHours : 0,
+        }
+      })
+      .sort((a: any, b: any) => parseInt(b.clockInTime, 10) - parseInt(a.clockInTime, 10))
   }
+  
 
   const getWorkerStats = () => {
     const history = getWorkerHistory()
@@ -331,6 +344,9 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
       <Title level={3}>Worker Dashboard</Title>
 
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
+      <TabPane tab="Location" key="tracker">
+        <LocationTracker />
+      </TabPane>
         <TabPane tab="Dashboard" key="dashboard">
           {/* Current Status */}
           <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>

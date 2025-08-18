@@ -9,7 +9,7 @@ const typeDefs = /* GraphQL */ `
     id: String!
     email: String!
     name: String
-    role: Role!
+    role: Role
     createdAt: String!
     auth0Id: String!
   }
@@ -354,4 +354,5 @@ const { handleRequest } = createYoga({
 
 })
 
+// @ts-ignore
 export { handleRequest as GET, handleRequest as POST }

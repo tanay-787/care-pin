@@ -18,7 +18,6 @@ import {
   Switch,
   InputNumber,
   Modal,
-  Select,
   DatePicker,
   Spin,
   Alert,
@@ -47,10 +46,15 @@ import {
   CLOCK_OUT,
 } from "@/lib/graphql-queries"
 import UserButton from "@/components/UserButton"
+import LocationMap from "@/components/pwa/LocationMap"
+import Select from "antd/lib/select"
+import { useRouter } from "next/navigation"
 
 const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
 const { RangePicker } = DatePicker
+const { useForm } = Form;
+
 
 export interface User {
   id: string
@@ -63,6 +67,9 @@ export interface User {
 const ManagerDashboard = ({ user }: { user: User }) => {
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null)
+  const [form] = useForm();
+  const [messageApi, contextHolder] = message.useMessage();
+  const router = useRouter();
 
   // GraphQL queries and mutations
   const { data: usersData, loading: usersLoading } = useQuery(GET_ALL_USERS)
@@ -72,13 +79,8 @@ const ManagerDashboard = ({ user }: { user: User }) => {
 
   const allUsers = usersData?.users || []
   const allShifts = shiftsData?.shifts || []
-  const perimeterSettings = perimeterData?.locationPerimeter || {
-    enabled: true,
-    radius: 2,
-    centerAddress: "123 Healthcare Center, Medical District",
-    centerLat: 40.7128,
-    centerLng: -74.006,
-  }
+  const perimeterSettings = perimeterData?.getLocationPerimeter;
+
 
   // Calculate statistics from real data
   const workers = usersData?.getAllUsers?.filter((u: any) => u.role === "CARE_WORKER") || [];
@@ -107,29 +109,35 @@ const ManagerDashboard = ({ user }: { user: User }) => {
     setActiveTab("logs")
   }
 
-  const handleUpdatePerimeter = async (values: any) => {
+  const handleUpdatePerimeter = async () => { // No need for 'values' parameter here
     try {
+      // Get the current values directly from the form instance
+      const formValues = form.getFieldsValue();
+
+      console.log(form.getFieldsValue());
+
       await updatePerimeter({
-        variables: {
-          input: {
-            enabled: values.enabled,
-            radius: values.radius,
-            centerAddress: values.centerAddress,
-            centerLat: perimeterSettings.centerLat,
-            centerLng: perimeterSettings.centerLng,
-          },
+        variables: { 
+            radiusKm: formValues.radius,
+            address: formValues.centerAddress,
+            centerLatitude: formValues.centerLat,
+            centerLongitude: formValues.centerLng,
+            isActive: true,
         },
         refetchQueries: [{ query: GET_LOCATION_PERIMETER }],
       })
-      message.success("Perimeter settings updated successfully")
+      messageApi.success("Perimeter settings updated successfully")
+      console.log(perimeterSettings);
+      // router.refresh();
     } catch (error) {
-      message.error("Failed to update perimeter settings")
+      messageApi.error("Failed to update perimeter settings")
     }
   }
+  
 
   if (usersLoading || shiftsLoading || perimeterLoading) {
     return (
-      <div style={{ padding: "24px", textAlign: "center" }}>
+      <div style={{ marginTop: "50%",marginLeft: "50%", textAlign: "center" }}>
         <Spin size="large" />
         <div style={{ marginTop: 16 }}>Loading dashboard...</div>
       </div>
@@ -184,6 +192,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                 />
               </Card>
             </Col>
+            
           </Row>
 
           <Card title="Currently Working Staff" style={{ marginBottom: 24 }}>
@@ -312,60 +321,158 @@ const ManagerDashboard = ({ user }: { user: User }) => {
       label: "Location Settings",
       children: (
         <Card title="GPS Perimeter Management">
-          <Form layout="vertical" initialValues={perimeterSettings} onFinish={handleUpdatePerimeter}>
-            <Row gutter={24}>
-              <Col xs={24} md={12}>
-                <Form.Item name="enabled" label="Location Restrictions" valuePropName="checked">
-                  <Switch checkedChildren="Enabled" unCheckedChildren="Disabled" />
-                </Form.Item>
-
+          {/* Form for updating an existing perimeter */}
+          {perimeterSettings ? (
+            <Form
+              form={form}
+              layout="vertical"
+              initialValues={perimeterSettings}
+              onFinish={handleUpdatePerimeter}
+            >
+              <Row gutter={24}>
+                <Col xs={24} md={12}>
+                  <LocationMap
+                    centerLat={perimeterSettings?.centerLatitude}
+                    centerLng={perimeterSettings?.centerLongitude}
+                    radius={perimeterSettings?.radiusKm ?? 2} 
+                    editable={true}
+                    onChange={(newCenter, newRadius, newAddress) => {
+                      form.setFieldsValue({
+                        centerLat: newCenter.lat,
+                        centerLng: newCenter.lng,
+                        centerAddress: newAddress,
+                        radius: newRadius,
+                      });
+                    }}
+                  />
+                </Col>
+    
+                {/* Hidden Form Items to capture LocationMap coordinates and radius */}
                 <Form.Item
-                  name="centerAddress"
-                  label="Center Location Address"
-                  rules={[{ required: true, message: "Please enter center address" }]}
+                  name="centerLat"
+                  hidden
+                  initialValue={perimeterSettings?.centerLatitude}
                 >
-                  <Input.TextArea rows={2} placeholder="Enter the address of your healthcare center" />
+                  <Input type="hidden" />
                 </Form.Item>
-
+                <Form.Item
+                  name="centerLng"
+                  hidden
+                  initialValue={perimeterSettings?.centerLongitude}
+                >
+                  <Input type="hidden" />
+                </Form.Item>
                 <Form.Item
                   name="radius"
-                  label="Allowed Radius (km)"
-                  rules={[{ required: true, message: "Please set radius" }]}
+                  hidden
+                  initialValue={perimeterSettings?.radiusKm ?? 2}
                 >
-                  <InputNumber min={0.1} max={50} step={0.1} />
+                  <Input type="hidden" />
                 </Form.Item>
-              </Col>
-
-              <Col xs={24} md={12}>
-                <Card size="small" title="Current Settings">
-                  <Space direction="vertical" style={{ width: "100%" }}>
-                    <Text>
-                      <strong>Status:</strong>{" "}
-                      <Tag color={perimeterSettings.enabled ? "green" : "red"}>
-                        {perimeterSettings.enabled ? "Active" : "Disabled"}
-                      </Tag>
-                    </Text>
-                    <Text>
-                      <strong>Radius:</strong> {perimeterSettings.radius} km
-                    </Text>
-                    <Text>
-                      <strong>Center:</strong> {perimeterSettings.centerAddress}
-                    </Text>
-                    <Text type="secondary">Workers can only clock in/out within this perimeter</Text>
-                  </Space>
-                </Card>
-              </Col>
-            </Row>
-
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Save Perimeter Settings
-              </Button>
-            </Form.Item>
-          </Form>
+                <Form.Item name="centerAddress" hidden initialValue={perimeterSettings?.address}>
+                        <Input type="hidden" />
+                      </Form.Item>
+                <Col xs={24} md={12}>
+                  <Card size="small" title="Current Settings">
+                    <Space direction="vertical" style={{ width: "100%" }}>
+                      <Text>
+                        <strong>Status:</strong>{" "}
+                        <Tag color={perimeterSettings?.isActive ? "green" : "red"}>
+                          {perimeterSettings?.isActive ? "Active" : "Disabled"}
+                        </Tag>
+                      </Text>
+                      <Text>
+                        <strong>Radius:</strong> {perimeterSettings?.radiusKm} km
+                      </Text>
+                      <Text>
+                        <strong>Center:</strong> {perimeterSettings?.address}
+                      </Text>
+                      <Text type="secondary">
+                        Workers can only clock in/out within this perimeter
+                      </Text>
+                    </Space>
+                  </Card>
+                </Col>
+              </Row>
+    
+              <Form.Item>
+                <Button type="primary" htmlType="submit" >
+                  Update Location
+                </Button>
+              </Form.Item>
+            </Form>
+          ) : (
+            // 🚀 Create new perimeter
+            <Form
+              form={form}
+              layout="vertical"
+              initialValues={{
+                centerLat: 19.076, // fallback Mumbai
+                centerLng: 72.8777,
+                radius: 2,
+              }}
+              onFinish={handleUpdatePerimeter}
+            >
+              <Row gutter={24}>
+                <Col xs={24} md={12}>
+                  <LocationMap
+                    centerLat={19.076}
+                    centerLng={72.8777}
+                    radius={2}
+                    editable={true}
+                    onChange={(newCenter, newRadius, newAddress) => {
+                      form.setFieldsValue({
+                        centerLat: newCenter.lat,
+                        centerLng: newCenter.lng,
+                        centerAddress: newAddress,
+                        radius: newRadius,
+                      });
+                    }}
+                  />
+                </Col>
+    
+                <Col xs={24} md={12}>
+                  <Card size="small" title="New Perimeter">
+                    <Space direction="vertical" style={{ width: "100%" }}>
+                      <Text type="secondary">
+                        Drag the marker to set your location, and adjust the radius with the slider.
+                      </Text>
+                      <Form.Item name="radius" label="Radius (km)">
+                        <InputNumber min={0.5} max={20} step={0.5} />
+                      </Form.Item>
+                      <Form.Item name="centerAddress" label="Center Address">
+                        <Input readOnly />
+                      </Form.Item>
+                      {/* Hidden Form Items to capture LocationMap coordinates */}
+                      <Form.Item
+                        name="centerLat"
+                        hidden // This hides the form item visually
+ initialValue={19.076}
+                      >
+                        <Input type="hidden" />
+                      </Form.Item>
+                      <Form.Item
+ name="centerLng"
+ hidden // This hides the form item visually
+ initialValue={72.8777}
+                      >
+                        <Input type="hidden" />{/* Or any valid child */}
+                      </Form.Item>
+                    </Space>
+                  </Card>
+                </Col>
+              </Row>
+    
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Save Location
+                </Button>
+              </Form.Item>
+            </Form>
+          )}
         </Card>
       ),
-    },
+    },      
     {
       key: "logs",
       label: "Shift Logs",
@@ -477,6 +584,8 @@ const ManagerDashboard = ({ user }: { user: User }) => {
   ]
 
   return (
+    <>
+    {contextHolder}
     <div style={{ padding: "24px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <div style={{ marginBottom: 24 }}>
@@ -487,6 +596,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
       </div>
       <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} size="large" />
     </div>
+    </>
   )
 }
 

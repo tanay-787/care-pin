@@ -22,7 +22,7 @@ const UserButton: React.FC<UserButtonProps> = ({ size = 'default'}) => {
   if (error || !user) {
     // Optional: Show a login button or handle error
     return (
-      <Button type="primary">
+      <Button type="primary" style={{ borderRadius: "999px"}}>
         <a href="/auth/login">Sign In</a> {/* Link to your Auth0 login route */}
       </Button>
     );
