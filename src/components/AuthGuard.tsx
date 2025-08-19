@@ -1,14 +1,15 @@
-'use client'; // This component needs to be a Client Component
+'use client';
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Spin, Modal, Select, Button, Typography, Result, Space, Radio, Card, Alert } from 'antd'; // Added necessary components
+import { Spin, Modal, Select, Button, Typography, Result, Space, Radio, Card, Alert, message } from 'antd'; // Added necessary components
 import { UserOutlined, CrownOutlined } from '@ant-design/icons'; // Added icons
 import { useUser } from '@auth0/nextjs-auth0';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_CURRENT_USER, CREATE_OR_UPDATE_USER } from '@/lib/graphql-queries';
 import { User } from '@/app/dashboard/page'
-const { Title, Paragraph, Text } = Typography; // Destructure Text and Paragraph
+
+const { Title, Paragraph, Text } = Typography; 
 
 interface AuthGuardProps {
   managerDashboard: (user: User) => React.ReactNode;
@@ -49,7 +50,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ managerDashboard, careWorkerDashb
         const userFromDB = currentUserData?.getCurrentUser;
         if (!userFromDB) {
           console.error('User data not found in database:', userFromDB);
-          return router.push('/');
+          return router.push('/auth/login');
         }
         if (!userFromDB.role) {
           setShowRoleSelectionModal(true);

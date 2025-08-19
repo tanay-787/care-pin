@@ -123,9 +123,9 @@ const resolvers = {
     getUserShifts: async (_: unknown, { userId }: { userId: string }, context: any) => {
       const currentUser = context.currentUser
       if (!currentUser) throw new Error("Authentication required")
-
+      
       // Users can only see their own shifts unless they're a manager
-      if (currentUser.role !== "MANAGER" || currentUser.id !== userId) {
+      if (currentUser.role !== "MANAGER" && currentUser.id !== userId) {
         throw new Error("Access denied")
       }
 
@@ -300,6 +300,7 @@ const schema = makeExecutableSchema({
 
 const { handleRequest } = createYoga({
   schema,
+  maskedErrors: false,
   graphqlEndpoint: "/api/graphql",
   fetchAPI: { Response },
   context: async ({ request }) => {

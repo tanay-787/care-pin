@@ -49,7 +49,7 @@ import UserButton from "@/components/UserButton"
 import Select from "antd/lib/select"
 import { useRouter } from "next/navigation"
 import dynamic from 'next/dynamic';
-
+import type { User } from "@/lib/types"
 const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
 const { RangePicker } = DatePicker
@@ -57,12 +57,7 @@ const { useForm } = Form;
 const LocationMap = dynamic(() => import('@/components/pwa/LocationMap'), { ssr: false });
 
 
-export interface User {
-  id: string
-  email: string
-  name: string
-  role?: "MANAGER" | "CARE_WORKER"
-}
+
 
 
 const ManagerDashboard = ({ user }: { user: User }) => {
@@ -79,10 +74,26 @@ const ManagerDashboard = ({ user }: { user: User }) => {
   const { data: perimeterData, loading: perimeterLoading } = useQuery(GET_LOCATION_PERIMETER)
   const [updatePerimeter] = useMutation(UPDATE_LOCATION_PERIMETER)
 
-  const allUsers = usersData?.users || []
-  const allShifts = shiftsData?.shifts || []
+  const allUsers = usersData?.getAllUsers || []
+  const allShifts = shiftsData?.getAllShifts || []
   const perimeterSettings = perimeterData?.getLocationPerimeter;
 
+  // Helper function to format duration
+  const formatDuration = (startTime: string | number, endTime: string | number | null) => {
+    const start = typeof startTime === "string" ? parseInt(startTime, 10) : startTime;
+    const end = endTime ? (typeof endTime === "string" ? parseInt(endTime, 10) : endTime) : Date.now();
+
+    if (end < start) return "Invalid Duration"; // Should not happen with correct data
+
+    const diff = end - start;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    if (!endTime) return `${hours}h ${minutes}m ${seconds}s (ongoing)`;
+
+    return `${hours}h ${minutes}m`;
+  };
 
   // Calculate statistics from real data
   const workers = usersData?.getAllUsers?.filter((u: any) => u.role === "CARE_WORKER") || [];
@@ -111,7 +122,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
     setActiveTab("logs")
   }
 
-  const handleUpdatePerimeter = async () => { // No need for 'values' parameter here
+  const handleUpdatePerimeter = async () => {
     try {
       // Get the current values directly from the form instance
       const formValues = form.getFieldsValue();
@@ -136,6 +147,29 @@ const ManagerDashboard = ({ user }: { user: User }) => {
     }
   }
   
+  // Data preparation for Manager Shift History Table
+  const getShiftHistory = () => {
+    if (!allShifts) return [];
+
+    return allShifts
+      .map((shift: any) => {
+        const clockIn = parseInt(shift.clockInTime, 10);
+        const clockOut = shift.clockOutTime ? parseInt(shift.clockOutTime, 10) : null;
+
+        const durationInMs = clockOut ? clockOut - clockIn : Date.now() - clockIn;
+        const durationHours = durationInMs / (1000 * 60 * 60);
+
+        return {
+          ...shift,
+          key: shift.id,
+          workerName: shift.user.name || 'Unknown Worker',
+          clockInTimeFormatted: new Date(clockIn).toLocaleString(),
+          clockOutTimeFormatted: clockOut ? new Date(clockOut).toLocaleString() : "Still clocked in",
+          durationFormatted: formatDuration(clockIn, clockOut),
+          totalHours: durationHours, // Keep in hours for calculations
+        };
+      });
+  };
 
   if (usersLoading || shiftsLoading || perimeterLoading) {
     return (
@@ -498,75 +532,73 @@ const ManagerDashboard = ({ user }: { user: User }) => {
             </Space>
 
             <Table
-              dataSource={
-                selectedWorker ? allShifts.filter((shift: any) => shift.userId === selectedWorker) : allShifts
-              }
+              dataSource={getShiftHistory().filter((shift: any) =>
+                selectedWorker ? shift.user.id === selectedWorker : true
+              )}
               rowKey="id"
-              pagination={{ pageSize: 10 }}
+              pagination={{ pageSize: 4 }}
               columns={[
                 {
                   title: "Worker",
-                  key: "worker",
-                  render: (_, record: any) => {
-                    const worker = allUsers.find((u: any) => u.id === record.userId)
-                    return <Text strong>{worker?.name}</Text>
-                  },
+ dataIndex: "workerName",
+ key: "workerName",
+ render: (name: string) => <Text strong>{name}</Text>,
                 },
                 {
                   title: "Clock In",
-                  dataIndex: "clockInTime",
+ dataIndex: "clockInTimeFormatted",
                   key: "clockIn",
-                  render: (time: string) => (
+ render: (time: string) => (
                     <div>
-                      <div>{new Date(time).toLocaleDateString()}</div>
-                      <Text type="secondary">{new Date(time).toLocaleTimeString()}</Text>
+                      <div>{time.split(',')[0]}</div> {/* Date */}
+                      <Text type="secondary">{time.split(',')[1]?.trim()}</Text> {/* Time */}
                     </div>
                   ),
                 },
                 {
                   title: "Clock Out",
-                  dataIndex: "clockOutTime",
+ dataIndex: "clockOutTimeFormatted",
                   key: "clockOut",
-                  render: (time: string | null) =>
-                    time ? (
+ render: (time: string) =>
+ time === "Still clocked in" ? (
+ <Tag color="green">Still Working</Tag>
+ ) : (
                       <div>
-                        <div>{new Date(time).toLocaleDateString()}</div>
-                        <Text type="secondary">{new Date(time).toLocaleTimeString()}</Text>
+                        <div>{time.split(',')[0]}</div> {/* Date */}
+                        <Text type="secondary">{time.split(',')[1]?.trim()}</Text> {/* Time */}
                       </div>
-                    ) : (
-                      <Tag color="green">Still Working</Tag>
                     ),
                 },
                 {
                   title: "Duration",
-                  key: "duration",
-                  render: (_, record: any) => {
-                    if (record.clockOutTime) {
-                      const duration = new Date(record.clockOutTime).getTime() - new Date(record.clockInTime).getTime()
-                      const hours = Math.floor(duration / (1000 * 60 * 60))
-                      const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60))
-                      return `${hours}h ${minutes}m`
-                    }
-                    const duration = Date.now() - new Date(record.clockInTime).getTime()
-                    const hours = Math.floor(duration / (1000 * 60 * 60))
-                    const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60))
-                    return `${hours}h ${minutes}m (ongoing)`
-                  },
+ dataIndex: "durationFormatted",
+ key: "duration",
                 },
                 {
-                  title: "Location",
-                  key: "location",
-                  render: (_, record: any) => {
-                    if (record.clockInLocation) {
-                      return <Tag color="green">Valid</Tag>
+                  title: "Status",
+ dataIndex: "status",
+ key: "status",
+ render: (status: string) => (
+ <Tag color={status === "CLOCKED_IN" ? "green" : "default"}>
+ {status === "CLOCKED_IN" ? "Active" : "Completed"}
+ </Tag>
+ ),
+                },
+                {
+ title: "Clock In Location",
+ dataIndex: "clockInLatitude", // Assuming presence of lat indicates location data
+ key: "clockInLocation",
+ render: (lat: number) => {
+                    if (lat) {
+ return <Tag color="green">Recorded</Tag>
                     } else {
-                      return <Tag color="orange">No Location</Tag>
+ return <Tag color="orange">Not Recorded</Tag>
                     }
                   },
                 },
                 {
                   title: "Notes",
-                  dataIndex: "clockInNote",
+                  dataIndex: "notes",
                   key: "notes",
                   render: (notes: string) =>
                     notes ? (

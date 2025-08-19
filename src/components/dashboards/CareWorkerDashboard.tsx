@@ -79,8 +79,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
     loading: shiftsLoading,
     refetch: refetchShifts,
   } = useQuery(GET_USER_SHIFTS, {
-    variables: { userId: user.id },
-    pollInterval: 30000, // Poll every 30 seconds for real-time updates
+    variables: { userId: user.id },// Poll every 30 seconds for real-time updates
   })
 
   const { data: perimeterData, loading: perimeterLoading } = useQuery(GET_LOCATION_PERIMETER, {
@@ -320,10 +319,10 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
   return (
     <>
     {contextHolder}
-    <div>
+    <div style={{ margin: "24px"}}>
       <Title level={3}>Worker Dashboard</Title>
 
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
+      <Tabs tabPosition="bottom" activeKey={activeTab} onChange={setActiveTab}>
       <TabPane tab="Location" key="tracker">
         <LocationTracker />
       </TabPane>

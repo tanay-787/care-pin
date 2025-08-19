@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "NODE_OPTIONS='--enable-source-maps=true' next start",
     "lint": "next lint"
   },
   "dependencies": {
@@ -42,6 +42,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/ws": "^8.18.1",
+    "bufferutil": "^4.0.9",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
     "prisma": "^6.13.0",
