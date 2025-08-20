@@ -18,8 +18,13 @@
     "@neondatabase/serverless": "^1.0.1",
     "@prisma/adapter-neon": "^6.13.0",
     "@prisma/client": "^6.13.0",
+    "@serwist/next": "^9.1.1",
+    "@serwist/precaching": "^9.1.1",
+    "@serwist/sw": "^9.1.1",
     "@types/leaflet": "^1.9.20",
     "antd": "^5.26.7",
+    "antd-mobile": "^5.39.0",
+    "antd-mobile-icons": "^0.3.0",
     "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.1",
     "graphql": "^16.11.0",
@@ -32,6 +37,7 @@
     "react-dom": "19.1.0",
     "react-leaflet": "^5.0.0",
     "react-leaflet-draw": "^0.20.6",
+    "serwist": "^9.1.1",
     "ws": "^8.18.3"
   },
   "devDependencies": {

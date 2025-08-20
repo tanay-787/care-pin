@@ -3,47 +3,27 @@
 import { useState, useEffect, useCallback } from "react"
 import { useQuery, useMutation } from "@apollo/client"
 import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Table,
   Tag,
-  Button,
-  Space,
   Typography,
   Tabs,
-  Form,
+
   Input,
-  Switch,
-  InputNumber,
+
+
   Modal,
-  Select,
+
   DatePicker,
-  Spin,
-  Alert,
+
   message,
-  Divider,
-  ConfigProvider
 
 } from "antd"
+import { CloseOutline, MoreOutline, SearchOutline } from 'antd-mobile-icons'
 import {
-  UserOutlined,
   ClockCircleOutlined,
-  EnvironmentOutlined,
-  LogoutOutlined,
   HistoryOutlined,
-  CheckCircleOutlined,
-  TeamOutlined,
-  StopOutlined,
-  BarChartOutlined,
 } from "@ant-design/icons"
-import AuthGuard from "@/components/AuthGuard"
 import {
-  GET_ALL_USERS,
-  GET_ALL_SHIFTS,
   GET_LOCATION_PERIMETER,
-  UPDATE_LOCATION_PERIMETER,
   GET_USER_SHIFTS,
   CLOCK_IN,
   CLOCK_OUT,
@@ -51,17 +31,18 @@ import {
 import { getUserLocation } from "@/lib/get-location"
 import { getAddressFromCoords } from "@/lib/get-address"
 import LocationTracker from "@/components/pwa/LocationTracker"
+import type { User } from "@/lib/types"
+import ClockScreen from "@/components/careworker/ClockScreen";
+import HistoryScreen from "@/components/careworker/HistoryScreen";
+import { NavBar, TabBar, Space } from "antd-mobile";
+import UserButton from "../UserButton";
+import Image from "next/image";
+import Logo from "../../../public/logo.png"
+import DashboardNavBar from "./NavBar";
 
 const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
 const { RangePicker } = DatePicker
-
-export interface User {
-  id: string
-  email: string
-  name: string
-  role?: "MANAGER" | "CARE_WORKER"
-}
 
 const CareWorkerDashboard = ({ user }: { user: User }) => {
   const [currentShift, setCurrentShift] = useState<any>(null)
@@ -73,17 +54,18 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
   const [note, setNote] = useState("")
   const [activeTab, setActiveTab] = useState("dashboard")
   const [messageApi, contextHolder] = message.useMessage();
+  const [activeKey, setActiveKey] = useState<'clock' | 'history'>('clock');
 
   const {
     data: shiftsData,
     loading: shiftsLoading,
     refetch: refetchShifts,
   } = useQuery(GET_USER_SHIFTS, {
-    variables: { userId: user.id },// Poll every 30 seconds for real-time updates
+    variables: { userId: user.id },
   })
 
   const { data: perimeterData, loading: perimeterLoading } = useQuery(GET_LOCATION_PERIMETER, {
-    pollInterval: 60000, // Poll every minute for perimeter updates
+    pollInterval: 30000, // Poll every 30 seconds for perimeter updates
   })
 
   const [clockInMutation] = useMutation(CLOCK_IN, {
@@ -137,7 +119,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
 
     // Get current location when the component mounts and shiftsData changes
     getCurrentLocation()
-  }, [shiftsData,getCurrentLocation])
+  }, [shiftsData, getCurrentLocation])
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371 // Earth's radius in km
@@ -220,20 +202,20 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
     return `${hours}h ${minutes}m`
   }
-  
+
 
   const getWorkerHistory = () => {
     if (!shiftsData?.getUserShifts) return []
-  
+
     return shiftsData.getUserShifts
       .map((shift: any) => {
         const clockIn = parseInt(shift.clockInTime, 10)
         const clockOut = shift.clockOutTime ? parseInt(shift.clockOutTime, 10) : null
-  
+
         const durationHours = clockOut
           ? (clockOut - clockIn) / (1000 * 60 * 60) // convert ms diff → hours
           : null
-  
+
         return {
           ...shift,
           key: shift.id,
@@ -247,7 +229,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
       })
       .sort((a: any, b: any) => parseInt(b.clockInTime, 10) - parseInt(a.clockInTime, 10))
   }
-  
+
 
   const getWorkerStats = () => {
     const history = getWorkerHistory()
@@ -316,212 +298,50 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
     },
   ]
 
+  const right = (
+    <div>
+      <Space style={{ '--gap': '16px' }}>
+        <UserButton size="default" />
+      </Space>
+    </div>
+  )
+
+  const back = () =>
+    messageApi.info({
+      content: 'Redirecting to Home',
+    })
+
   return (
     <>
-    {contextHolder}
-    <div style={{ margin: "24px"}}>
-      <Title level={3}>Worker Dashboard</Title>
+      {contextHolder}
 
-      <Tabs tabPosition="bottom" activeKey={activeTab} onChange={setActiveTab}>
-      <TabPane tab="Location" key="tracker">
-        <LocationTracker />
-      </TabPane>
-        <TabPane tab="Dashboard" key="dashboard">
-          {/* Current Status */}
-          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-            <Col xs={24} sm={12}>
-              <Card size="small">
-                <Statistic
-                  title="Current Status"
-                  value={currentShift ? "Clocked In" : "Clocked Out"}
-                  prefix={
-                    currentShift ? (
-                      <CheckCircleOutlined style={{ color: "#52c41a" }} />
-                    ) : (
-                      <StopOutlined style={{ color: "#ff4d4f" }} />
-                    )
-                  }
-                  valueStyle={{ color: currentShift ? "#52c41a" : "#ff4d4f" }}
-                />
-              </Card>
-            </Col>
+      <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
+        {/* Main content area */}
+      <DashboardNavBar />
 
-            {currentShift && (
-              <Col xs={24} sm={12}>
-                <Card size="small">
-                  <Statistic
-                    title="Time Worked Today"
-                    value={formatDuration(currentShift.clockInTime)}
-                    prefix={<ClockCircleOutlined />}
-                  />
-                </Card>
-              </Col>
-            )}
-          </Row>
+        <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+          {activeKey === 'clock' ? <ClockScreen currentShift={currentShift}
+            location={location}
+            locationLoading={locationLoading}
+            clockLoading={clockLoading}
+            perimeter={perimeter}
+            isWithinPerimeter={isWithinPerimeter}
+            formatDuration={formatDuration}
+            handleClockAction={handleClockAction}
+            getCurrentLocation={getCurrentLocation} /> : <HistoryScreen workerStats={workerStats}
+              workerHistory={workerHistory}
+              shiftsLoading={shiftsLoading}
+              historyColumns={historyColumns} />}
+        </div>
 
-          {/* Location Status */}
-          <Card style={{ marginBottom: 24 }}>
-            <Title level={4}>
-              <EnvironmentOutlined /> Location Status
-            </Title>
-
-            {locationLoading ? (
-              <Alert message="Getting your location..." type="info" showIcon />
-            ) : location ? (
-              <div>
-                <Space direction="vertical" style={{ width: "100%" }}>
-                  <div>
-                    <Text strong>Current Location: </Text>
-                    <Text>{location.address}</Text>
-                  </div>
-
-                  <div>
-                    <Text strong>Perimeter Status: </Text>
-                    <Tag color={isWithinPerimeter() ? "green" : "red"}>
-                      {isWithinPerimeter() ? "Within Allowed Area" : "Outside Allowed Area"}
-                    </Tag>
-                  </div>
-
-                  {perimeter?.isActive && !isWithinPerimeter() && (
-                    <Alert
-                      message="You are outside the allowed perimeter"
-                      description={`You must be within ${perimeter.radiusKm}km of ${perimeter.centerAddress} to clock in/out.`}
-                      type="warning"
-                      showIcon
-                    />
-                  )}
-
-                  {!perimeter?.isActive && (
-                    <Alert
-                      message="Location restrictions disabled"
-                      description="You can clock in/out from any location."
-                      type="info"
-                      showIcon
-                    />
-                  )}
-                </Space>
-              </div>
-            ) : (
-              <Alert message="Location unavailable" type="error" showIcon />
-            )}
-
-            <Button onClick={getCurrentLocation} loading={locationLoading} style={{ marginTop: "12px" }}>
-              Refresh Location
-            </Button>
-          </Card>
-
-          {/* Clock In/Out Actions */}
-          <Card>
-            <Title level={4}>
-              <ClockCircleOutlined /> Clock In/Out
-            </Title>
-
-            {currentShift ? (
-              <div>
-                <Space direction="vertical" style={{ width: "100%", marginBottom: "16px" }}>
-                  <div>
-                    <Text strong>Clocked in at: </Text>
-                    <Text>{new Date(currentShift.clockInTime).toLocaleString()}</Text>
-                  </div>
-                  <div>
-                    <Text strong>Note: </Text>
-                    <Text>{currentShift.notes || "No note provided"}</Text>
-                  </div>
-                </Space>
-
-                <Button
-                  type="primary"
-                  danger
-                  size="large"
-                  icon={<StopOutlined />}
-                  onClick={() => handleClockAction("out")}
-                  disabled={!isWithinPerimeter() || locationLoading || clockLoading}
-                  style={{ width: "100%" }}
-                >
-                  Clock Out
-                </Button>
-              </div>
-            ) : (
-              <Button
-                type="primary"
-                size="large"
-                icon={<CheckCircleOutlined />}
-                onClick={() => handleClockAction("in")}
-                disabled={!isWithinPerimeter() || locationLoading || clockLoading}
-                style={{ width: "100%" }}
-              >
-                Clock In
-              </Button>
-            )}
-
-            {((!isWithinPerimeter() && perimeter?.isActive) || locationLoading) && (
-              <Text type="secondary" style={{ display: "block", marginTop: "8px", textAlign: "center" }}>
-                {locationLoading ? "Waiting for location..." : "Move closer to workplace to enable clock in/out"}
-              </Text>
-            )}
-          </Card>
-        </TabPane>
-
-        <TabPane tab="My History" key="history">
-          {/* Worker Statistics */}
-          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-            <Col xs={24} sm={12} md={6}>
-              <Card size="small">
-                <Statistic title="Total Shifts" value={workerStats.totalShifts} prefix={<HistoryOutlined />} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card size="small">
-                <Statistic
-                  title="Total Hours"
-                  value={workerStats.totalHours}
-                  suffix="hrs"
-                  prefix={<ClockCircleOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card size="small">
-                <Statistic
-                  title="Avg Hours/Shift"
-                  value={workerStats.avgHoursPerShift}
-                  suffix="hrs"
-                  prefix={<BarChartOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card size="small">
-                <Statistic title="This Week" value={workerStats.thisWeekHours} suffix="hrs" prefix={<TeamOutlined />} />
-              </Card>
-            </Col>
-          </Row>
-
-          {/* Shift History Table */}
-          <Card>
-            <Title level={4}>
-              <HistoryOutlined /> My Shift History
-            </Title>
-            {shiftsLoading ? (
-              <Alert message="Loading shift history..." type="info" showIcon />
-            ) : workerHistory.length > 0 ? (
-              <Table
-                columns={historyColumns}
-                dataSource={workerHistory}
-                pagination={{ pageSize: 10 }}
-                scroll={{ x: true }}
-              />
-            ) : (
-              <Alert
-                message="No shift history found"
-                description="Your shift history will appear here once you start clocking in and out."
-                type="info"
-                showIcon
-              />
-            )}
-          </Card>
-        </TabPane>
-      </Tabs>
+        {/* Bottom TabBar */}
+        <TabBar activeKey={activeKey} onChange={(key: string) => {
+          setActiveKey(key as 'clock' | 'history');
+        }}>
+          <TabBar.Item key="clock" icon={<ClockCircleOutlined />} title="Clock In/Out" />
+          <TabBar.Item key="history" icon={<HistoryOutlined />} title="Shift History" />
+        </TabBar>
+      </div>
 
       {/* Note Modal */}
       <Modal
@@ -543,7 +363,6 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
           />
         </Space>
       </Modal>
-    </div>
     </>
   )
 }

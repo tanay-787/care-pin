@@ -5,6 +5,20 @@ body {
   font-size: 16px;
 }
 
+/* Dashboard NavBar */
+
+/* ResponsiveNavBar.css */
+.navbar-brand-text {
+  display: inline-block;
+}
+
+@media screen and (max-width: 480px) {
+  .navbar-brand-text {
+    display: none;
+  }
+}
+
+
 /* Custom styles for better mobile responsiveness and visual polish */
 @media (max-width: 768px) {
     .ant-layout-header {

@@ -50,6 +50,7 @@ import Select from "antd/lib/select"
 import { useRouter } from "next/navigation"
 import dynamic from 'next/dynamic';
 import type { User } from "@/lib/types"
+import DashboardNavBar from "./NavBar"
 const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
 const { RangePicker } = DatePicker
@@ -173,7 +174,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
 
   if (usersLoading || shiftsLoading || perimeterLoading) {
     return (
-      <div style={{ marginTop: "50%",marginLeft: "50%", textAlign: "center" }}>
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#f0f2f5" }}>
         <Spin size="large" />
         <div style={{ marginTop: 16 }}>Loading dashboard...</div>
       </div>
@@ -238,7 +239,8 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                 return { ...worker, currentShift }
               })}
               rowKey="id"
-              pagination={false}
+              pagination={{ pageSize: 4 }}
+              scroll={{ x: true }}
               columns={[
                 {
                   title: "Name",
@@ -307,6 +309,8 @@ const ManagerDashboard = ({ user }: { user: User }) => {
           <Table
             dataSource={usersData?.getAllUsers || []}
             rowKey="id"
+            pagination={{ pageSize: 4}}
+            scroll={{ x: true }}
             columns={[
               {
                 title: "Name",
@@ -536,6 +540,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
                 selectedWorker ? shift.user.id === selectedWorker : true
               )}
               rowKey="id"
+              scroll={{ x: true }}
               pagination={{ pageSize: 4 }}
               columns={[
                 {
@@ -620,15 +625,11 @@ const ManagerDashboard = ({ user }: { user: User }) => {
   return (
     <>
     {contextHolder}
-    <div style={{ padding: "24px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2}>Manager Dashboard</Title>
-        <Text type="secondary">Welcome back, {user.name}. Here`&apos;`s your staff overview and management tools.</Text>
-      </div>
-      <UserButton size="large" />
-      </div>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
+      <DashboardNavBar/>
+      <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
       <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} size="large" />
+      </div>
     </div>
     </>
   )
