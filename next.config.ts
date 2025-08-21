@@ -13,7 +13,8 @@ const withSerwist = withSerwistInit({
   // Optional Serwist flags:
   disable: process.env.NODE_ENV === "development",
   additionalPrecacheEntries: [
-    { url: "/manifest.webmanifest", revision: null }
+    { url: "/manifest.webmanifest", revision: null },
+    { url: "/offline", revision: null }
   ],
 });
 

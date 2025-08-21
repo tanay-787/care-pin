@@ -6,6 +6,7 @@ import { ApolloWrapper } from "@/lib/apollo-wrapper"
 
 import "./globals.css"
 import "@ant-design/v5-patch-for-react-19"
+import PushManager from "@/components/pwa/PushManager"
 
 export const metadata: Metadata = {
   title: "Care Worker Shift Tracking",
@@ -30,7 +31,10 @@ export default function RootLayout({
                 },
               }}
             >
-             <App>{children}</App> 
+              
+             <App>
+              <PushManager />
+              {children}</App> 
             </ConfigProvider>
           </ApolloWrapper>
         </Auth0Provider>

@@ -27,6 +27,7 @@ import {
   GET_USER_SHIFTS,
   CLOCK_IN,
   CLOCK_OUT,
+  GREET_USER,
 } from "@/lib/graphql-queries"
 import { getUserLocation } from "@/lib/get-location"
 import { getAddressFromCoords } from "@/lib/get-address"
@@ -55,7 +56,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [messageApi, contextHolder] = message.useMessage();
   const [activeKey, setActiveKey] = useState<'clock' | 'history'>('clock');
-
+  const [greetUser] = useMutation(GREET_USER);
   const {
     data: shiftsData,
     loading: shiftsLoading,
@@ -120,6 +121,14 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
     // Get current location when the component mounts and shiftsData changes
     getCurrentLocation()
   }, [shiftsData, getCurrentLocation])
+
+  useEffect(() => {
+    if (user) {
+      greetUser()
+        .then(() => console.log("Greeting notification sent"))
+        .catch(err => console.error("Error sending greeting:", err));
+    }
+  }, [user, greetUser]);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371 // Earth's radius in km

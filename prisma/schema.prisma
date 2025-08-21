@@ -16,11 +16,11 @@ model User {
   auth0Id   String? @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  // Relations
+
+  isInPerimeter Boolean @default(false)
   shifts    Shift[]
   locationPerimetersUpdated LocationPerimeter[] @relation("UpdatedBy")
-  
+  pushSubscriptions       PushSubscription[]
   @@map("users")
 }
 
@@ -60,6 +60,18 @@ model LocationPerimeter {
   updatedBy       User    @relation("UpdatedBy", fields: [updatedById], references: [id]) // Make relation non-nullable
   
   @@map("location_perimeters")
+}
+
+model PushSubscription {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  endpoint   String   @unique
+  p256dh     String
+  auth       String
+  createdAt  DateTime @default(now())
+
+  @@map("push_subscriptions")
 }
 
 enum UserRole {

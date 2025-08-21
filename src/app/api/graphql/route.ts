@@ -2,7 +2,13 @@ import { createYoga } from "graphql-yoga"
 import { makeExecutableSchema } from "@graphql-tools/schema"
 import prisma from "@/lib/prisma"
 import { auth0 } from "@/lib/auth0"
-import type { NextRequest } from "next/server"
+import webpush from "web-push";
+
+webpush.setVapidDetails(
+  process.env.VAPID_CONTACT_EMAIL || "mailto:you@example.com",
+  process.env.VAPID_PUBLIC_KEY!,
+  process.env.VAPID_PRIVATE_KEY!
+);
 
 const typeDefs = /* GraphQL */ `
   type User {
@@ -55,9 +61,11 @@ const typeDefs = /* GraphQL */ `
     getUserShifts(userId: String!): [Shift!]!
     getAllShifts: [Shift!]!
     getLocationPerimeter: LocationPerimeter
+    
   }
 
   type Mutation {
+    greetUser: Boolean!
     createOrUpdateUser(email: String!, name: String!, role: Role!): User!
     clockIn(latitude: Float!, longitude: Float!, notes: String): Shift!
     clockOut(shiftId: String!, latitude: Float!, longitude: Float!, notes: String): Shift!
@@ -68,6 +76,10 @@ const typeDefs = /* GraphQL */ `
       address: String!
       isActive: Boolean!
     ): LocationPerimeter!
+     subscribePush(endpoint: String!, p256dh: String!, auth: String!): Boolean!
+  unsubscribePush(endpoint: String!): Boolean!
+  triggerGeo(latitude: Float!, longitude: Float!): Boolean!
+  
   }
 `
 /**
@@ -102,6 +114,19 @@ async function getCurrentUserFromSession() {
   }
 }
 
+// helper: Haversine distance (km)
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const toRad = (x: number) => (x * Math.PI) / 180;
+  const R = 6371; // km
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 const resolvers = {
   Query: {
     getCurrentUser: async (_: unknown, __: unknown, context: any) => {
@@ -120,10 +145,12 @@ const resolvers = {
       })
     },
 
+    
+
     getUserShifts: async (_: unknown, { userId }: { userId: string }, context: any) => {
       const currentUser = context.currentUser
       if (!currentUser) throw new Error("Authentication required")
-      
+
       // Users can only see their own shifts unless they're a manager
       if (currentUser.role !== "MANAGER" && currentUser.id !== userId) {
         throw new Error("Access denied")
@@ -157,6 +184,36 @@ const resolvers = {
   },
 
   Mutation: {
+    greetUser: async (_: any, __: any, context: any) => {
+      const user = context.currentUser;
+      if (!user) throw new Error("Authentication required");
+  
+      const subs = await prisma.pushSubscription.findMany({
+        where: { userId: user.id },
+      });
+      if (!subs.length) return false;
+  
+      const payload = JSON.stringify({
+        title: "Welcome!",
+        body: `Hi ${user.name || "there"}, welcome back!`
+      });
+  
+      await Promise.all(subs.map(async (s) => {
+        try {
+          await webpush.sendNotification(
+            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } } as any,
+            payload
+          );
+        } catch (err: any) {
+          if (err.statusCode === 410 || err.statusCode === 404) {
+            await prisma.pushSubscription.deleteMany({ where: { endpoint: s.endpoint } });
+          }
+        }
+      }));
+  
+      return true;
+    },
+
     createOrUpdateUser: async (
       _: unknown,
       { name, role }: { name: string | null | undefined; role: "MANAGER" | "CARE_WORKER" | undefined },
@@ -164,25 +221,25 @@ const resolvers = {
     ) => {
       const user = context.currentUser
       if (!user) throw new Error("Authentication required")
-    
+
       // Prepare data for update
       const updateData: { name?: string | null; role?: "MANAGER" | "CARE_WORKER" } = {};
-    
-          updateData.name = name;
-    
+
+      updateData.name = name;
+
       if (role !== undefined && user.role === null) { // Check if role input is provided AND user has no role in DB
-          updateData.role = role; // Set the role
+        updateData.role = role; // Set the role
       } else if (role !== undefined && user.role !== null && user.role !== role) {
-           throw new Error("Role cannot be changed after it has been set.");
+        throw new Error("Role cannot be changed after it has been set.");
       }
-    
-    
+
+
       // If no update data is provided (e.g., called the mutation with no name or role input),
       // return the existing user without performing an update.
-       if (Object.keys(updateData).length === 0) {
-           return user;
-       }
-    
+      if (Object.keys(updateData).length === 0) {
+        return user;
+      }
+
       // Update the user's profile
       return await prisma.user.update({
         where: { email: user.email },
@@ -190,7 +247,7 @@ const resolvers = {
         include: { shifts: true, locationPerimetersUpdated: true }
       });
     },
-    
+
 
     clockIn: async (
       _: unknown,
@@ -290,6 +347,81 @@ const resolvers = {
         include: { updatedBy: true },
       })
     },
+    subscribePush: async (_: any, { endpoint, p256dh, auth }: any, context: any) => {
+      const user = context.currentUser;
+      if (!user) throw new Error("Authentication required");
+
+      await prisma.pushSubscription.upsert({
+        where: { endpoint },
+        update: { p256dh, auth, userId: user.id },
+        create: { endpoint, p256dh, auth, userId: user.id },
+      });
+      return true;
+    },
+    unsubscribePush: async (_: any, { endpoint }: any, context: any) => {
+      const user = context.currentUser;
+      if (!user) throw new Error("Authentication required");
+      await prisma.pushSubscription.deleteMany({
+        where: { endpoint, userId: user.id },
+      });
+      return true;
+    },
+    triggerGeo: async (_: any, { latitude, longitude }: { latitude: number; longitude: number }, context: any) => {
+      const user = context.currentUser;
+      if (!user) throw new Error("Authentication required");
+
+      // find active perimeter
+      const perimeter = await prisma.locationPerimeter.findFirst({
+        where: { isActive: true }
+      });
+      if (!perimeter) return false;
+
+      const distance = haversineKm(latitude, longitude, perimeter.centerLatitude, perimeter.centerLongitude);
+      const inside = distance <= perimeter.radiusKm;
+
+      // check previous state from User.isInPerimeter
+      const prev = !!user.isInPerimeter;
+      if (prev === inside) {
+        // no state change, do nothing
+        await prisma.user.update({ where: { id: user.id }, data: { isInPerimeter: inside } });
+        return false;
+      }
+
+      // update user's isInPerimeter
+      await prisma.user.update({ where: { id: user.id }, data: { isInPerimeter: inside } });
+
+      // build notification
+      const payload = JSON.stringify({
+        title: inside ? "Clock In Reminder" : "Clock Out Reminder",
+        body: inside
+          ? `You entered ${perimeter.address}. Tap to clock in.`
+          : `You left ${perimeter.address}. Tap to clock out.`,
+        data: { type: "geo", inside }
+      });
+
+      // fetch this user's subscriptions and send
+      const subs = await prisma.pushSubscription.findMany({ where: { userId: user.id } });
+      await Promise.all(subs.map(async s => {
+        const pushSub = {
+          endpoint: s.endpoint,
+          keys: {
+            p256dh: s.p256dh,
+            auth: s.auth
+          }
+        };
+        try {
+          await webpush.sendNotification(pushSub as any, payload);
+        } catch (err: any) {
+          if (err?.statusCode === 410 || err?.statusCode === 404) {
+            await prisma.pushSubscription.deleteMany({ where: { endpoint: s.endpoint } });
+          } else {
+            console.error("webpush error:", err);
+          }
+        }
+      }));
+
+      return true;
+    },
   },
 }
 
@@ -306,7 +438,7 @@ const { handleRequest } = createYoga({
   context: async ({ request }) => {
     const currentUser = await getCurrentUserFromSession();
     return { request, currentUser };
-  }  
+  }
 })
 
 export const GET = (req: Request) => handleRequest(req, {});

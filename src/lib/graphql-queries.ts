@@ -161,3 +161,27 @@ export const CREATE_OR_UPDATE_USER = gql`
     }
   }
 `
+
+export const SUBSCRIBE_PUSH = gql`
+  mutation SubscribePush($endpoint: String!, $p256dh: String!, $auth: String!) {
+    subscribePush(endpoint: $endpoint, p256dh: $p256dh, auth: $auth)
+  }
+`;
+
+export const UNSUBSCRIBE_PUSH = gql`
+  mutation UnsubscribePush($endpoint: String!) {
+    unsubscribePush(endpoint: $endpoint)
+  }
+`;
+
+export const TRIGGER_GEO = gql`
+  mutation TriggerGeo($latitude: Float!, $longitude: Float!) {
+    triggerGeo(latitude: $latitude, longitude: $longitude)
+  }
+`;
+
+export const GREET_USER = gql`
+  mutation GreetUser {
+    greetUser
+  }
+`;
