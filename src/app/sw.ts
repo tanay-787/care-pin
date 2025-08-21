@@ -18,9 +18,7 @@ const serwist = new Serwist({
   runtimeCaching: defaultCache,
 });
 
-serwist.addEventListeners();
 
-// robust fetch handler (always returns a Response)
 self.addEventListener("fetch", event => {
   event.respondWith((async () => {
     // try cache first
@@ -45,7 +43,6 @@ self.addEventListener("fetch", event => {
 
 // Push listener: receives push even when app closed
 self.addEventListener("push", (event) => {
-  console.log(event.data?.json?.())
   const data = event.data?.json?.() || { title: "Notification", body: "" };
   const title = data.title || "Attention";
   const options: NotificationOptions = {
@@ -73,3 +70,6 @@ self.addEventListener("notificationclick", (event) => {
     })()
   );
 });
+
+serwist.addEventListeners();
+
