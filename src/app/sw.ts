@@ -43,16 +43,16 @@ self.addEventListener("fetch", event => {
 
 // Push listener: receives push even when app closed
 self.addEventListener("push", (event) => {
-  const data = event.data?.json?.() || { title: "Notification", body: "" };
-  const title = data.title || "Attention";
-  const options: NotificationOptions = {
-    body: data.body,
-    data: data,
-    // optionally add icon, badge etc
-  };
-  
-  event.waitUntil(self.registration.showNotification(title, options));
+  console.log("Push event received", event);
+  const data = event.data?.json?.() || { title: "Notification!", body: "" };
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      data,
+    })
+  );
 });
+
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
