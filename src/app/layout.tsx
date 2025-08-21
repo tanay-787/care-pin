@@ -34,7 +34,6 @@ export default function RootLayout({
             >
               
              <App>
-              <PushManager />
               {children}</App> 
             </ConfigProvider>
             </AntdRegistry>

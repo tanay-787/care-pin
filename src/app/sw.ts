@@ -1,4 +1,3 @@
-// app/sw.ts
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
 import { Serwist } from "serwist";
@@ -18,58 +17,35 @@ const serwist = new Serwist({
   runtimeCaching: defaultCache,
 });
 
-
-self.addEventListener("fetch", event => {
-  event.respondWith((async () => {
-    // try cache first
-    const cached = await caches.match(event.request);
-    if (cached) return cached;
-
-    try {
-      // try network
-      const networkResp = await fetch(event.request);
-      return networkResp;
-    } catch (err) {
-      // fallback for navigation requests
-      if (event.request.destination === "document") {
-        const fallback = await caches.match("/offline");
-        if (fallback) return fallback;
-      }
-      // default closed response instead of undefined
-      return new Response("Offline", { status: 503, statusText: "Service Unavailable" });
-    }
-  })());
-});
-
-// Push listener: receives push even when app closed
+/// 1. Custom push listener (should be registered early)
 self.addEventListener("push", (event) => {
-  console.log("Push event received", event);
-  const data = event.data?.json?.() || { title: "Notification!", body: "" };
+  console.log("[SW] Push received:", event);
+  const data = event.data?.json?.() || { title: "Hi", message: "" };
   event.waitUntil(
     self.registration.showNotification(data.title, {
-      body: data.body,
-      data,
+      body: data.message,
+      icon: "/icons/android-chrome-192x192.png",
     })
   );
 });
 
-
+// 2. Notification click handler follows
 self.addEventListener("notificationclick", (event) => {
+  console.log("[SW] Notification clicked");
   event.notification.close();
-  // open app and navigate to a specific page
   event.waitUntil(
-    (async () => {
-      const allClients = await self.clients.matchAll({ includeUncontrolled: true });
-      const client = allClients.length ? allClients[0] : null;
-      if (client) {
-        (client as WindowClient).focus();
-        client.postMessage({ type: "notification-click", payload: event.notification.data });
-      } else {
-        self.clients.openWindow("/");
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      if (clients.length > 0) {
+        let client = clients[0];
+        clients.forEach((c) => {
+          if (c.focused) client = c;
+        });
+        return client.focus();
       }
-    })()
+      return self.clients.openWindow("/");
+    })
   );
 });
 
-serwist.addEventListeners();
-
+// // 3. Then Serwist’s handlers
+// serwist.addEventListeners();
