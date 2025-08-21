@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { ConfigProvider, App } from "antd"
 import { Auth0Provider } from "@auth0/nextjs-auth0"
 import { ApolloWrapper } from "@/lib/apollo-wrapper"
-
+import { AntdRegistry } from '@ant-design/nextjs-registry';
 import "./globals.css"
 import "@ant-design/v5-patch-for-react-19"
 import PushManager from "@/components/pwa/PushManager"
@@ -23,6 +23,7 @@ export default function RootLayout({
       <body>
         <Auth0Provider>
           <ApolloWrapper>
+          <AntdRegistry>
             <ConfigProvider
               theme={{
                 token: {
@@ -36,6 +37,7 @@ export default function RootLayout({
               <PushManager />
               {children}</App> 
             </ConfigProvider>
+            </AntdRegistry>
           </ApolloWrapper>
         </Auth0Provider>
       </body>

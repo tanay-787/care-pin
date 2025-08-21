@@ -38,6 +38,7 @@ const { Header, Content, Footer } = Layout
 const { Title, Paragraph, Text } = Typography
 
 export default function LandingPage() {
+  
   const [form] = Form.useForm()
   const router = useRouter();
   const [messageApi, contextHolder] = message.useMessage();

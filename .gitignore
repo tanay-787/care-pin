@@ -42,3 +42,6 @@ next-env.d.ts
 
 .idx
 /src/generated/prisma
+
+
+public/sw.js
