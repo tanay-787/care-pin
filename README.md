@@ -15,17 +15,17 @@ CarePin was developed as a take-home assignment project for lief@healthcare comp
 CarePin is built using modern web technologies:
 
 - **Frontend:**
-  - Next.js - React framework for production
-  - Ant Design - UI component library
-  - Progressive Web App (PWA) capabilities
+  - Next.js 15 - Fullstack React framework for production
+  - Ant Design v5 - UI component library
+  - Serwist - Progressive Web App (PWA) capabilities
 
 - **Backend:**
-  - GraphQL - API query language
-  - Prisma - Next-generation ORM
+  - GraphQL Yoga
+  - Prisma ORM
   - NeonDB - Serverless Postgres database
 
 - **Authentication:**
-  - Auth0 - Secure authentication service
+  - Auth0 - Managed authentication service
 
 ## 🛠️ Getting Started
 
