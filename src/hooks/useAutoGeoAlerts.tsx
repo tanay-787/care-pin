@@ -14,11 +14,13 @@ interface UserLocation {
 
 export function useAutoGeoAlerts() {
   const { data } = useQuery(GET_CURRENT_USER);
-  const autoEnabled = data?.getCurrentUser?.autoGeoAlerts;
+  // const autoEnabled = data?.getCurrentUser?.autoGeoAlerts ;
+  const autoEnabled = true ;
 
   const [location, setLocation] = useState<UserLocation | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
 
+  const [lastTriggerTime, setLastTriggerTime] = useState(0);
   const [triggerGeo] = useMutation(TRIGGER_GEO);
   const [updateAutoGeo] = useMutation(UPDATE_AUTO_GEO, {
     update(cache, { data: { updateAutoGeo } }) {
@@ -44,9 +46,15 @@ export function useAutoGeoAlerts() {
           setLocation(coords);
           setLocationLoading(false);
 
-          triggerGeo({
-            variables: { latitude: coords.latitude, longitude: coords.longitude },
-          }).catch(console.error);
+          const currentTime = Date.now();
+          const fiveMinutes = 5 * 60 * 1000;
+
+          if (currentTime - lastTriggerTime > fiveMinutes) {
+ triggerGeo({
+ variables: { latitude: coords.latitude, longitude: coords.longitude },
+ }).catch(console.error);
+ setLastTriggerTime(currentTime);
+          }
         },
         (err) => {
           console.error(err);
