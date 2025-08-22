@@ -6,8 +6,6 @@ import { ApolloWrapper } from "@/lib/apollo-wrapper"
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import "./globals.css"
 import "@ant-design/v5-patch-for-react-19"
-import PushManager from "@/components/pwa/PushManager"
-
 export const metadata: Metadata = {
   title: "Care Worker Shift Tracking",
   description: "Track care worker shifts with location-based check-ins",

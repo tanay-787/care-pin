@@ -15,7 +15,7 @@ import {
   DatePicker,
 
   message,
-
+  Switch
 } from "antd"
 import { CloseOutline, MoreOutline, SearchOutline } from 'antd-mobile-icons'
 import {
@@ -40,6 +40,7 @@ import UserButton from "../UserButton";
 import Image from "next/image";
 import Logo from "../../../public/logo.png"
 import DashboardNavBar from "./NavBar";
+import { useAutoGeoAlerts } from "@/hooks/useAutoGeoAlerts"
 
 const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
@@ -56,7 +57,9 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [messageApi, contextHolder] = message.useMessage();
   const [activeKey, setActiveKey] = useState<'clock' | 'history'>('clock');
-  const [greetUser] = useMutation(GREET_USER);
+  const { autoEnabled, toggleAutoGeo } = useAutoGeoAlerts()
+
+
   const {
     data: shiftsData,
     loading: shiftsLoading,
@@ -121,14 +124,6 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
     // Get current location when the component mounts and shiftsData changes
     getCurrentLocation()
   }, [shiftsData, getCurrentLocation])
-
-  useEffect(() => {
-    if (user) {
-      greetUser()
-        .then(() => console.log("Greeting notification sent"))
-        .catch(err => console.error("Error sending greeting:", err));
-    }
-  }, [user, greetUser]);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371 // Earth's radius in km
@@ -307,18 +302,6 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
     },
   ]
 
-  const right = (
-    <div>
-      <Space style={{ '--gap': '16px' }}>
-        <UserButton size="default" />
-      </Space>
-    </div>
-  )
-
-  const back = () =>
-    messageApi.info({
-      content: 'Redirecting to Home',
-    })
 
   return (
     <>
@@ -327,17 +310,18 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
       <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
         {/* Main content area */}
       <DashboardNavBar />
+      <Space align="center" style={{ padding: 16 }}>
+        <Switch checked={autoEnabled} onChange={toggleAutoGeo} />
+        <Text>Enable Automatic Location Alerts</Text>
+      </Space>
 
         <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
           {activeKey === 'clock' ? <ClockScreen currentShift={currentShift}
-            location={location}
-            locationLoading={locationLoading}
             clockLoading={clockLoading}
             perimeter={perimeter}
             isWithinPerimeter={isWithinPerimeter}
             formatDuration={formatDuration}
-            handleClockAction={handleClockAction}
-            getCurrentLocation={getCurrentLocation} /> : <HistoryScreen workerStats={workerStats}
+            handleClockAction={handleClockAction} /> : <HistoryScreen workerStats={workerStats}
               workerHistory={workerHistory}
               shiftsLoading={shiftsLoading}
               historyColumns={historyColumns} />}

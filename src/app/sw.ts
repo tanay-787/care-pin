@@ -24,7 +24,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.message,
-      icon: "/icons/android-chrome-192x192.png",
+      icon: "/logo.png",
     })
   );
 });
@@ -48,4 +48,4 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 // // 3. Then Serwist’s handlers
-// serwist.addEventListeners();
+serwist.addEventListeners();

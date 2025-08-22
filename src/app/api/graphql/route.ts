@@ -17,11 +17,14 @@ const typeDefs = /* GraphQL */ `
     name: String
     role: Role
     createdAt: String!
-    auth0Id: String!
+    auth0Id: String
+    autoGeoAlerts: Boolean!
+    isInPerimeter: Boolean!
   }
 
   type Shift {
     id: String!
+    userId: String! # Added userId to Shift type
     clockInTime: String!
     clockOutTime: String
     clockInLatitude: Float
@@ -31,6 +34,8 @@ const typeDefs = /* GraphQL */ `
     duration: Int
     notes: String
     status: ShiftStatus!
+    createdAt: String! # Added createdAt
+    updatedAt: String! # Added updatedAt
     user: User!
   }
 
@@ -61,11 +66,11 @@ const typeDefs = /* GraphQL */ `
     getUserShifts(userId: String!): [Shift!]!
     getAllShifts: [Shift!]!
     getLocationPerimeter: LocationPerimeter
-    
   }
 
   type Mutation {
     greetUser: Boolean!
+    updateAutoGeo(enabled: Boolean!): User!
     createOrUpdateUser(email: String!, name: String!, role: Role!): User!
     clockIn(latitude: Float!, longitude: Float!, notes: String): Shift!
     clockOut(shiftId: String!, latitude: Float!, longitude: Float!, notes: String): Shift!
@@ -76,12 +81,12 @@ const typeDefs = /* GraphQL */ `
       address: String!
       isActive: Boolean!
     ): LocationPerimeter!
-     subscribePush(endpoint: String!, p256dh: String!, auth: String!): Boolean!
-  unsubscribePush(endpoint: String!): Boolean!
-  triggerGeo(latitude: Float!, longitude: Float!): Boolean!
-  
+    subscribePush(endpoint: String!, p256dh: String!, auth: String!): Boolean!
+    unsubscribePush(endpoint: String!): Boolean!
+    triggerGeo(latitude: Float!, longitude: Float!): Boolean!
   }
-`
+`;
+
 /**
  * @description Retrieves Current DBUser from Auth0 Session 
  */
@@ -145,7 +150,7 @@ const resolvers = {
       })
     },
 
-    
+
 
     getUserShifts: async (_: unknown, { userId }: { userId: string }, context: any) => {
       const currentUser = context.currentUser
@@ -187,17 +192,17 @@ const resolvers = {
     greetUser: async (_: any, __: any, context: any) => {
       const user = context.currentUser;
       if (!user) throw new Error("Authentication required");
-  
+
       const subs = await prisma.pushSubscription.findMany({
         where: { userId: user.id },
       });
       if (!subs.length) return false;
-  
+
       const payload = JSON.stringify({
         title: "Welcome!",
         body: `Hi ${user.name || "there"}, welcome back!`
       });
-  
+
       await Promise.all(subs.map(async (s) => {
         try {
           await webpush.sendNotification(
@@ -210,7 +215,7 @@ const resolvers = {
           }
         }
       }));
-  
+
       return true;
     },
 
@@ -365,6 +370,17 @@ const resolvers = {
         where: { endpoint, userId: user.id },
       });
       return true;
+    },
+    updateAutoGeo: async (_: any, { enabled }: { enabled: boolean }, context: any) => {
+      const user = context.currentUser
+      if (!user) throw new Error("Authentication required")
+
+      const updated = await prisma.user.update({
+        where: { id: user.id },
+        data: { autoGeoAlerts: enabled },
+      })
+
+      return updated
     },
     triggerGeo: async (_: any, { latitude, longitude }: { latitude: number; longitude: number }, context: any) => {
       const user = context.currentUser;

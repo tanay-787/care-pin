@@ -16,7 +16,8 @@ model User {
   auth0Id   String? @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  
+  autoGeoAlerts Boolean @default(false)
   isInPerimeter Boolean @default(false)
   shifts    Shift[]
   locationPerimetersUpdated LocationPerimeter[] @relation("UpdatedBy")
