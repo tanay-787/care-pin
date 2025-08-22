@@ -1,51 +1,36 @@
 "use client";
 
-import { Card, Table, Tag, Button, Space, Typography } from "antd";
-import { type User } from "@/lib/types";
+import { FC } from "react";
+import { Card, Table, Typography, Tag, Button, Space } from "antd";
+import type { User } from "@/lib/types";
 
 const { Text } = Typography;
 
 interface StaffTabProps {
-  usersData: {
-    getAllUsers: User[];
-  } | undefined;
-  handleViewWorkerLogs: (workerId: string) => void;
+  users: User[];
+  onViewWorkerLogs: (workerId: string) => void;
 }
 
-const StaffTab: React.FC<StaffTabProps> = ({
-  usersData,
-  handleViewWorkerLogs,
-}) => {
+const StaffTab: FC<StaffTabProps> = ({ users, onViewWorkerLogs }) => {
   return (
     <Card title="Staff Management">
       <Table
-        dataSource={usersData?.getAllUsers || []}
+        dataSource={users}
         rowKey="id"
+        pagination={{ pageSize: 4 }}
+        scroll={{ x: true }}
         columns={[
-          {
-            title: "Name",
-            dataIndex: "name",
-            key: "name",
-            render: (name: string) => <Text strong>{name}</Text>,
-          },
-          {
-            title: "Email",
-            dataIndex: "email",
-            key: "email",
-          },
+          { title: "Name", dataIndex: "name", render: (name: string) => <Text strong>{name}</Text> },
+          { title: "Email", dataIndex: "email" },
           {
             title: "Role",
             dataIndex: "role",
-            key: "role",
             filters: [
               { text: "Manager", value: "MANAGER" },
               { text: "Care Worker", value: "CARE_WORKER" },
             ],
-            onFilter: (
-              value: string | boolean | number | bigint,
-              record: any
-            ) => record.role === value,
-            render: (role: "MANAGER" | "CARE_WORKER") => (
+            onFilter: (value, record) => record.role === value,
+            render: (role: User["role"]) => (
               <Tag color={role === "MANAGER" ? "blue" : "green"}>
                 {role === "MANAGER" ? "Manager" : "Care Worker"}
               </Tag>
@@ -53,20 +38,14 @@ const StaffTab: React.FC<StaffTabProps> = ({
           },
           {
             title: "Actions",
-            key: "actions",
-            render: (_, record: any) => (
-              <Space>
-                {record.role === "CARE_WORKER" && (
-                  <Button
-                    type="link"
-                    size="small"
-                    onClick={() => handleViewWorkerLogs(record.id)}
-                  >
+            render: (_: unknown, record: User) =>
+              record.role === "CARE_WORKER" && (
+                <Space>
+                  <Button type="link" size="small" onClick={() => onViewWorkerLogs(record.id)}>
                     View Logs
                   </Button>
-                )}
-              </Space>
-            ),
+                </Space>
+              ),
           },
         ]}
       />

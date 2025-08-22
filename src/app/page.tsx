@@ -32,13 +32,14 @@ import FeatureTwo from "../../public/feature-two.png";
 import FeatureThree from "../../public/feature-three.png";
 import Logo from "../../public/logo.png"
 import { useRouter } from "next/navigation";
+import { useUser } from "@auth0/nextjs-auth0";
 
 
 const { Header, Content, Footer } = Layout
 const { Title, Paragraph, Text } = Typography
 
 export default function LandingPage() {
-  
+  const { user } = useUser();
   const [form] = Form.useForm()
   const router = useRouter();
   const [messageApi, contextHolder] = message.useMessage();
@@ -158,7 +159,7 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
               router.push("/dashboard")
             }}
           >
-            Get Started
+            { user ? 'To Dashboard': 'Get Started'}
           </Button>
           <Button
             size="large"

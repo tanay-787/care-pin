@@ -60,13 +60,13 @@ export default function LocationMap({
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔄 Update center when props change
+  
   useEffect(() => {
     setCenter([centerLat, centerLng]);
     setCircleRadius(radius * 1000);
   }, [centerLat, centerLng, radius]);
 
-  // 📍 Fetch address for given coords
+  //Fetch address for given coords
   useEffect(() => {
     const fetchAddr = async () => {
       const [lat, lng] = center as [number, number];
@@ -76,7 +76,7 @@ export default function LocationMap({
     fetchAddr();
   }, [center]);
 
-  // 🟢 Handle marker drag end
+
   const handleMarkerDragEnd = async () => {
     const marker = markerRef.current;
     if (marker) {
@@ -90,7 +90,7 @@ export default function LocationMap({
     }
   };
 
-  // 🟣 Handle radius slider
+
   const handleRadiusChange = (newRadius: number) => {
     setCircleRadius(newRadius);
     if (onChange) {
@@ -146,7 +146,7 @@ export default function LocationMap({
     >
       {/* 🔍 Search Bar */}
       {editable && (
-        <div style={{ position: "absolute", top: 10, left: 10, right: 10, zIndex: 1000 }}>
+        <div style={{ position: "absolute", top: 10, left: 50, right: 10, zIndex: 1000 }}>
           <Input.Search
             placeholder="Search location..."
             enterButton

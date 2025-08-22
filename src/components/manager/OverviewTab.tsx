@@ -1,45 +1,28 @@
 "use client";
 
-import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Table,
-  Tag,
-  Button,
-  Space,
-  Typography,
-} from "antd";
-import {
-  UserOutlined,
-  ClockCircleOutlined,
-  TeamOutlined,
-  HistoryOutlined,
-} from "@ant-design/icons";
-import type { User, Shift} from "@/lib/types";
-const { Title, Text } = Typography;
+import { FC } from "react";
+import { Row, Col, Card, Statistic, Table, Tag, Typography, Button } from "antd";
+import { UserOutlined, TeamOutlined, ClockCircleOutlined, HistoryOutlined } from "@ant-design/icons";
+import type { User, Shift } from "@/lib/types";
 
-
+const { Text } = Typography;
 
 interface OverviewTabProps {
+  workers: User[];
   currentlyWorking: User[];
-  totalWorkers: number;
-  todayShifts: Shift[];
-  avgHoursPerDay: number;
   allShifts: Shift[];
-  allUsers: User[];
-  handleViewWorkerLogs: (workerId: string) => void;
+  avgHoursPerDay: number;
+  todayShifts: Shift[];
+  onViewWorkerLogs: (workerId: string) => void;
 }
 
-const OverviewTab: React.FC<OverviewTabProps> = ({
+const OverviewTab: FC<OverviewTabProps> = ({
+  workers,
   currentlyWorking,
-  totalWorkers,
-  todayShifts,
-  avgHoursPerDay,
   allShifts,
-  allUsers,
-  handleViewWorkerLogs,
+  avgHoursPerDay,
+  todayShifts,
+  onViewWorkerLogs,
 }) => {
   return (
     <div>
@@ -58,7 +41,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <Card>
             <Statistic
               title="Total Staff"
-              value={totalWorkers}
+              value={workers.length}
               prefix={<TeamOutlined />}
               valueStyle={{ color: "#1890ff" }}
             />
@@ -87,16 +70,15 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         </Col>
       </Row>
 
-      <Card title="Currently Working Staff" style={{ marginBottom: 24 }}>
+      <Card title="Currently Working Staff">
         <Table
           dataSource={currentlyWorking.map((worker) => {
-            const currentShift = allShifts.find(
-              (shift) => shift.userId === worker.id && !shift.clockOutTime
-            );
+            const currentShift = allShifts.find((s) => s.userId === worker.id && !s.clockOutTime);
             return { ...worker, currentShift };
           })}
           rowKey="id"
-          pagination={false}
+          pagination={{ pageSize: 4 }}
+          scroll={{ x: true }}
           columns={[
             {
               title: "Name",
@@ -104,34 +86,19 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               key: "name",
               render: (name: string) => <Text strong>{name}</Text>,
             },
-            {
-              title: "Status",
-              key: "status",
-              render: () => <Tag color="green">Working</Tag>,
-            },
+            { title: "Status", render: () => <Tag color="green">Working</Tag> },
             {
               title: "Clock In Time",
-              key: "clockIn",
-              render: (_, record: any) => {
-                if (record.currentShift) {
-                  return new Date(
-                    parseInt(record.currentShift.clockInTime, 10)
-                  ).toLocaleTimeString();
-                }
-                return "-";
-              },
+              render: (_: unknown, record: any) =>
+                record.currentShift ? new Date(record.currentShift.clockInTime).toLocaleTimeString() : "-",
             },
             {
               title: "Duration",
-              key: "duration",
-              render: (_, record: any) => {
+              render: (_: unknown, record: any) => {
                 if (record.currentShift) {
-                  const duration =
-                    Date.now() - parseInt(record.currentShift.clockInTime, 10);
+                  const duration = Date.now() - new Date(record.currentShift.clockInTime).getTime();
                   const hours = Math.floor(duration / (1000 * 60 * 60));
-                  const minutes = Math.floor(
-                    (duration % (1000 * 60 * 60)) / (1000 * 60)
-                  );
+                  const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
                   return `${hours}h ${minutes}m`;
                 }
                 return "-";
@@ -139,26 +106,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             },
             {
               title: "Location",
-              key: "location",
-              render: (_, record: any) => {
-                // Assuming 'clockInLocation' is a boolean indicating if within perimeter
-                if (record.currentShift?.clockInLatitude && record.currentShift?.clockInLongitude) {
-                   // More accurate check might involve comparing against perimeter here if needed
-                   return <Tag color="green">Location Logged</Tag>
-                 }
-                return <Tag color="orange">No Location Logged</Tag>;
-
-              },
+              render: (_: unknown, record: any) =>
+                record.currentShift?.clockInLocation ? <Tag color="green">Within Perimeter</Tag> : "-",
             },
             {
               title: "Actions",
-              key: "actions",
-              render: (_, record: any) => (
-                <Button
-                  type="link"
-                  size="small"
-                  onClick={() => handleViewWorkerLogs(record.id)}
-                >
+              render: (_: unknown, record: any) => (
+                <Button type="link" size="small" onClick={() => onViewWorkerLogs(record.id)}>
                   View Logs
                 </Button>
               ),

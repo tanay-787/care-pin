@@ -45,12 +45,19 @@ import {
   CLOCK_IN,
   CLOCK_OUT,
 } from "@/lib/graphql-queries"
+
 import UserButton from "@/components/UserButton"
 import Select from "antd/lib/select"
 import { useRouter } from "next/navigation"
 import dynamic from 'next/dynamic';
 import type { User } from "@/lib/types"
+
 import DashboardNavBar from "./NavBar"
+import OverviewTab from "@/components/manager/OverviewTab";
+import StaffTab from "@/components/manager/StaffTab";
+import LocationSettingsTab from "@/components/manager/LocationSettingsTab";
+import ShiftLogsTab from "@/components/manager/ShiftLogsTab";
+
 const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
 const { RangePicker } = DatePicker
@@ -183,442 +190,47 @@ const ManagerDashboard = ({ user }: { user: User }) => {
       key: "overview",
       label: "Overview",
       children: (
-        <div>
-          <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic
-                  title="Currently Working"
-                  value={currentlyWorking.length}
-                  prefix={<UserOutlined />}
-                  valueStyle={{ color: "#52c41a" }}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic
-                  title="Total Staff"
-                  value={totalWorkers}
-                  prefix={<TeamOutlined />}
-                  valueStyle={{ color: "#1890ff" }}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic
-                  title="Today's Clock-ins"
-                  value={todayShifts.length}
-                  prefix={<ClockCircleOutlined />}
-                  valueStyle={{ color: "#722ed1" }}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic
-                  title="Avg Hours/Day"
-                  value={avgHoursPerDay}
-                  precision={1}
-                  prefix={<HistoryOutlined />}
-                  valueStyle={{ color: "#fa8c16" }}
-                />
-              </Card>
-            </Col>
-            
-          </Row>
-
-          <Card title="Currently Working Staff" style={{ marginBottom: 24 }}>
-            <Table
-              dataSource={currentlyWorking.map((worker: any) => {
-                const currentShift = allShifts.find((shift: any) => shift.userId === worker.id && !shift.clockOutTime)
-                return { ...worker, currentShift }
-              })}
-              rowKey="id"
-              pagination={{ pageSize: 4 }}
-              scroll={{ x: true }}
-              columns={[
-                {
-                  title: "Name",
-                  dataIndex: "name",
-                  key: "name",
-                  render: (name: string) => <Text strong>{name}</Text>,
-                },
-                {
-                  title: "Status",
-                  key: "status",
-                  render: () => <Tag color="green">Working</Tag>,
-                },
-                {
-                  title: "Clock In Time",
-                  key: "clockIn",
-                  render: (_, record: any) => {
-                    if (record.currentShift) {
-                      return new Date(record.currentShift.clockInTime).toLocaleTimeString()
-                    }
-                    return "-"
-                  },
-                },
-                {
-                  title: "Duration",
-                  key: "duration",
-                  render: (_, record: any) => {
-                    if (record.currentShift) {
-                      const duration = Date.now() - new Date(record.currentShift.clockInTime).getTime()
-                      const hours = Math.floor(duration / (1000 * 60 * 60))
-                      const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60))
-                      return `${hours}h ${minutes}m`
-                    }
-                    return "-"
-                  },
-                },
-                {
-                  title: "Location",
-                  key: "location",
-                  render: (_, record: any) => {
-                    if (record.currentShift?.clockInLocation) {
-                      return <Tag color="green">Within Perimeter</Tag>
-                    }
-                    return "-"
-                  },
-                },
-                {
-                  title: "Actions",
-                  key: "actions",
-                  render: (_, record: any) => (
-                    <Button type="link" size="small" onClick={() => handleViewWorkerLogs(record.id)}>
-                      View Logs
-                    </Button>
-                  ),
-                },
-              ]}
-            />
-          </Card>
-        </div>
+        <OverviewTab
+          currentlyWorking={currentlyWorking}
+          workers={totalWorkers}
+          todayShifts={todayShifts}
+          avgHoursPerDay={avgHoursPerDay}
+          allShifts={allShifts}
+          onViewWorkerLogs={handleViewWorkerLogs}
+        />
       ),
     },
     {
       key: "staff",
       label: "Staff",
       children: (
-        <Card title="Staff Management">
-          <Table
-            dataSource={usersData?.getAllUsers || []}
-            rowKey="id"
-            pagination={{ pageSize: 4}}
-            scroll={{ x: true }}
-            columns={[
-              {
-                title: "Name",
-                dataIndex: "name",
-                key: "name",
-                render: (name: string) => <Text strong>{name}</Text>,
-              },
-              {
-                title: "Email",
-                dataIndex: "email",
-                key: "email",
-              },
-              {
-                title: "Role",
-                dataIndex: "role",
-                key: "role",
-                filters: [
-                  { text: 'Manager', value: 'MANAGER' },
-                  { text: 'Care Worker', value: 'CARE_WORKER' },
-                ],
-                onFilter: (value: string | boolean | number | bigint, record: any) => record.role === value,
-                render: (role: "MANAGER" | "CARE_WORKER") => (
-                  <Tag color={role === "MANAGER" ? "blue" : "green"}>
-                    {role === "MANAGER" ? "Manager" : "Care Worker"}
-                  </Tag>
-                ),
-              },
-              {
-                title: "Actions",
-                key: "actions",
-                render: (_, record: any) => (
-                  <Space>
-                    {record.role === "CARE_WORKER" && (
-                      <Button type="link" size="small" onClick={() => handleViewWorkerLogs(record.id)}>
-                        View Logs
-                      </Button>
-                    )}
-                  </Space>
-                ),
-              },
-            ]}
-          />
-        </Card>
+        <StaffTab users={allUsers} onViewWorkerLogs={handleViewWorkerLogs} />
       ),
     },
     {
       key: "location",
       label: "Location Settings",
       children: (
-        <Card title="GPS Perimeter Management">
-          {/* Form for updating an existing perimeter */}
-          {perimeterSettings ? (
-            <Form
-              form={form}
-              layout="vertical"
-              initialValues={perimeterSettings}
-              onFinish={handleUpdatePerimeter}
-            >
-              <Row gutter={24}>
-                <Col xs={24} md={12}>
-                  <LocationMap
-                    centerLat={perimeterSettings?.centerLatitude}
-                    centerLng={perimeterSettings?.centerLongitude}
-                    radius={perimeterSettings?.radiusKm ?? 2} 
-                    editable={true}
-                    onChange={(newCenter, newRadius, newAddress) => {
-                      form.setFieldsValue({
-                        centerLat: newCenter.lat,
-                        centerLng: newCenter.lng,
-                        centerAddress: newAddress,
-                        radius: newRadius,
-                      });
-                    }}
-                  />
-                </Col>
-    
-                {/* Hidden Form Items to capture LocationMap coordinates and radius */}
-                <Form.Item
-                  name="centerLat"
-                  hidden
-                  initialValue={perimeterSettings?.centerLatitude}
-                >
-                  <Input type="hidden" />
-                </Form.Item>
-                <Form.Item
-                  name="centerLng"
-                  hidden
-                  initialValue={perimeterSettings?.centerLongitude}
-                >
-                  <Input type="hidden" />
-                </Form.Item>
-                <Form.Item
-                  name="radius"
-                  hidden
-                  initialValue={perimeterSettings?.radiusKm ?? 2}
-                >
-                  <Input type="hidden" />
-                </Form.Item>
-                <Form.Item name="centerAddress" hidden initialValue={perimeterSettings?.address}>
-                        <Input type="hidden" />
-                      </Form.Item>
-                <Col xs={24} md={12}>
-                  <Card size="small" title="Current Settings">
-                    <Space direction="vertical" style={{ width: "100%" }}>
-                      <Text>
-                        <strong>Status:</strong>{" "}
-                        <Tag color={perimeterSettings?.isActive ? "green" : "red"}>
-                          {perimeterSettings?.isActive ? "Active" : "Disabled"}
-                        </Tag>
-                      </Text>
-                      <Text>
-                        <strong>Radius:</strong> {perimeterSettings?.radiusKm} km
-                      </Text>
-                      <Text>
-                        <strong>Center:</strong> {perimeterSettings?.address}
-                      </Text>
-                      <Text type="secondary">
-                        Workers can only clock in/out within this perimeter
-                      </Text>
-                    </Space>
-                  </Card>
-                </Col>
-              </Row>
-    
-              <Form.Item>
-                <Button type="primary" htmlType="submit" >
-                  Update Location
-                </Button>
-              </Form.Item>
-            </Form>
-          ) : (
-            // 🚀 Create new perimeter
-            <Form
-              form={form}
-              layout="vertical"
-              initialValues={{
-                centerLat: 19.076, // fallback Mumbai
-                centerLng: 72.8777,
-                radius: 2,
-              }}
-              onFinish={handleUpdatePerimeter}
-            >
-              <Row gutter={24}>
-                <Col xs={24} md={12}>
-                  <LocationMap
-                    centerLat={19.076}
-                    centerLng={72.8777}
-                    radius={2}
-                    editable={true}
-                    onChange={(newCenter, newRadius, newAddress) => {
-                      form.setFieldsValue({
-                        centerLat: newCenter.lat,
-                        centerLng: newCenter.lng,
-                        centerAddress: newAddress,
-                        radius: newRadius,
-                      });
-                    }}
-                  />
-                </Col>
-    
-                <Col xs={24} md={12}>
-                  <Card size="small" title="New Perimeter">
-                    <Space direction="vertical" style={{ width: "100%" }}>
-                      <Text type="secondary">
-                        Drag the marker to set your location, and adjust the radius with the slider.
-                      </Text>
-                      <Form.Item name="radius" label="Radius (km)">
-                        <InputNumber min={0.5} max={20} step={0.5} />
-                      </Form.Item>
-                      <Form.Item name="centerAddress" label="Center Address">
-                        <Input readOnly />
-                      </Form.Item>
-                      {/* Hidden Form Items to capture LocationMap coordinates */}
-                      <Form.Item
-                        name="centerLat"
-                        hidden // This hides the form item visually
- initialValue={19.076}
-                      >
-                        <Input type="hidden" />
-                      </Form.Item>
-                      <Form.Item
- name="centerLng"
- hidden // This hides the form item visually
- initialValue={72.8777}
-                      >
-                        <Input type="hidden" />{/* Or any valid child */}
-                      </Form.Item>
-                    </Space>
-                  </Card>
-                </Col>
-              </Row>
-    
-              <Form.Item>
-                <Button type="primary" htmlType="submit">
-                  Save Location
-                </Button>
-              </Form.Item>
-            </Form>
-          )}
-        </Card>
+        <LocationSettingsTab
+          perimeterSettings={perimeterSettings}
+          form={form}
+          onUpdatePerimeter={handleUpdatePerimeter}
+        />
       ),
-    },      
+    },
     {
       key: "logs",
       label: "Shift Logs",
       children: (
-        <div>
-          <Card title="All Shift Logs" style={{ marginBottom: 24 }}>
-            <Space style={{ marginBottom: 16 }}>
-              <Select
-                placeholder="Filter by worker"
-                style={{ width: 200 }}
-                allowClear
-                value={selectedWorker}
-                onChange={setSelectedWorker}
-              >
-                {workers.map((worker: any) => (
-                  <Select.Option key={worker.id} value={worker.id}>
-                    {worker.name}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Space>
-
-            <Table
-              dataSource={getShiftHistory().filter((shift: any) =>
-                selectedWorker ? shift.user.id === selectedWorker : true
-              )}
-              rowKey="id"
-              scroll={{ x: true }}
-              pagination={{ pageSize: 4 }}
-              columns={[
-                {
-                  title: "Worker",
- dataIndex: "workerName",
- key: "workerName",
- render: (name: string) => <Text strong>{name}</Text>,
-                },
-                {
-                  title: "Clock In",
- dataIndex: "clockInTimeFormatted",
-                  key: "clockIn",
- render: (time: string) => (
-                    <div>
-                      <div>{time.split(',')[0]}</div> {/* Date */}
-                      <Text type="secondary">{time.split(',')[1]?.trim()}</Text> {/* Time */}
-                    </div>
-                  ),
-                },
-                {
-                  title: "Clock Out",
- dataIndex: "clockOutTimeFormatted",
-                  key: "clockOut",
- render: (time: string) =>
- time === "Still clocked in" ? (
- <Tag color="green">Still Working</Tag>
- ) : (
-                      <div>
-                        <div>{time.split(',')[0]}</div> {/* Date */}
-                        <Text type="secondary">{time.split(',')[1]?.trim()}</Text> {/* Time */}
-                      </div>
-                    ),
-                },
-                {
-                  title: "Duration",
- dataIndex: "durationFormatted",
- key: "duration",
-                },
-                {
-                  title: "Status",
- dataIndex: "status",
- key: "status",
- render: (status: string) => (
- <Tag color={status === "CLOCKED_IN" ? "green" : "default"}>
- {status === "CLOCKED_IN" ? "Active" : "Completed"}
- </Tag>
- ),
-                },
-                {
- title: "Clock In Location",
- dataIndex: "clockInLatitude", // Assuming presence of lat indicates location data
- key: "clockInLocation",
- render: (lat: number) => {
-                    if (lat) {
- return <Tag color="green">Recorded</Tag>
-                    } else {
- return <Tag color="orange">Not Recorded</Tag>
-                    }
-                  },
-                },
-                {
-                  title: "Notes",
-                  dataIndex: "notes",
-                  key: "notes",
-                  render: (notes: string) =>
-                    notes ? (
-                      <Text ellipsis style={{ maxWidth: 100 }}>
-                        {notes}
-                      </Text>
-                    ) : (
-                      <Text type="secondary">-</Text>
-                    ),
-                },
-              ]}
-            />
-          </Card>
-        </div>
+        <ShiftLogsTab
+          shifts={getShiftHistory()}
+          workers={workers}
+          selectedWorker={selectedWorker}
+          onSelectWorker={setSelectedWorker}
+        />
       ),
     },
-  ]
-
+  ];
   return (
     <>
     {contextHolder}
