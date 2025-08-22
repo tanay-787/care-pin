@@ -4,8 +4,10 @@ import { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import L, { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { getUserLocation } from "@/lib/get-location";
+import { Input, List, Spin } from "antd";
 import { getAddressFromCoords } from "@/lib/get-address";
+import { useMap } from "react-leaflet";
+
 
 // Fix marker icons in Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -14,6 +16,7 @@ L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
+
 interface LocationMapProps {
   centerLat: number;
   centerLng: number;
@@ -26,6 +29,20 @@ interface LocationMapProps {
   ) => void;
 }
 
+
+function MapUpdater({ center }: { center: LatLngExpression }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (center) {
+      map.setView(center, map.getZoom()); // keeps current zoom, just pans
+    }
+  }, [center, map]);
+
+  return null;
+}
+
+
 export default function LocationMap({
   centerLat,
   centerLng,
@@ -34,9 +51,14 @@ export default function LocationMap({
   onChange,
 }: LocationMapProps) {
   const [center, setCenter] = useState<LatLngExpression>([centerLat, centerLng]);
-  const [circleRadius, setCircleRadius] = useState(radius * 1000); // Leaflet uses meters
+  const [circleRadius, setCircleRadius] = useState(radius * 1000); // meters
   const [address, setAddress] = useState("");
   const markerRef = useRef<L.Marker>(null);
+
+  // search state
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // 🔄 Update center when props change
   useEffect(() => {
@@ -60,18 +82,15 @@ export default function LocationMap({
     if (marker) {
       const pos = marker.getLatLng();
       setCenter([pos.lat, pos.lng]);
-
       const addr = await getAddressFromCoords(pos.lat, pos.lng);
       setAddress(addr);
-
       if (onChange) {
         onChange({ lat: pos.lat, lng: pos.lng }, circleRadius / 1000, addr);
       }
     }
   };
 
-  // 🟣 Handle circle resize (via map zoom buttons for now)
-  // You could extend this with a radius slider in UI
+  // 🟣 Handle radius slider
   const handleRadiusChange = (newRadius: number) => {
     setCircleRadius(newRadius);
     if (onChange) {
@@ -80,16 +99,83 @@ export default function LocationMap({
     }
   };
 
+  // 🔍 Search nominatim API
+  const handleSearch = async (value: string) => {
+    setQuery(value);
+    if (!value) {
+      setResults([]);
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}`
+      );
+      const data = await res.json();
+      setResults(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 📍 When user selects a search result
+  const handleSelectResult = (place: any) => {
+    const lat = parseFloat(place.lat);
+    const lon = parseFloat(place.lon);
+    setCenter([lat, lon]);
+    setAddress(place.display_name);
+    setResults([]);
+    if (onChange) {
+      onChange({ lat, lng: lon }, circleRadius / 1000, place.display_name);
+    }
+  };
+
   return (
     <div
       style={{
         width: "100%",
         height: "500px",
-        borderRadius: "0.75rem", // rounded-xl
+        borderRadius: "0.75rem",
         overflow: "hidden",
-        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)", // shadow
+        boxShadow:
+          "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        position: "relative",
       }}
     >
+      {/* 🔍 Search Bar */}
+      {editable && (
+        <div style={{ position: "absolute", top: 10, left: 10, right: 10, zIndex: 1000 }}>
+          <Input.Search
+            placeholder="Search location..."
+            enterButton
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onSearch={handleSearch}
+          />
+          {loading && <Spin style={{ marginTop: 8 }} />}
+          {results.length > 0 && (
+            <List
+              bordered
+              style={{
+                maxHeight: 200,
+                overflow: "auto",
+                background: "#fff",
+                marginTop: 4,
+              }}
+              dataSource={results}
+              renderItem={(item) => (
+                <List.Item onClick={() => handleSelectResult(item)} style={{ cursor: "pointer" }}>
+                  {item.display_name}
+                </List.Item>
+              )}
+            />
+          )}
+        </div>
+      )}
+
+      {/* 🗺️ Map */}
       <MapContainer
         center={center}
         zoom={18}
@@ -100,6 +186,8 @@ export default function LocationMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
+<MapUpdater center={center} />
 
         <Marker
           position={center}
@@ -123,25 +211,24 @@ export default function LocationMap({
         />
       </MapContainer>
 
+      {/* radius slider */}
       {editable && (
         <div
           style={{
-            padding: "0.5rem", // p-2
+            padding: "0.5rem",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            borderTop: "1px solid #e5e7eb", // border-t
+            borderTop: "1px solid #e5e7eb",
           }}
         >
-          <label
-            style={{
-              fontSize: "0.875rem", // text-sm
-            }}
-          >Radius: {(circleRadius / 1000).toFixed(2)} km</label>
+          <label style={{ fontSize: "0.875rem" }}>
+            Radius: {(circleRadius / 1000).toFixed(2)} km
+          </label>
           <input
             type="range"
             min={500}
-            max={20000} // Or a more reasonable maximum
+            max={20000}
             step={500}
             value={circleRadius}
             onChange={(e) => handleRadiusChange(parseInt(e.target.value))}

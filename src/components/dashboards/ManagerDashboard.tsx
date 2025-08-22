@@ -58,9 +58,6 @@ const { useForm } = Form;
 const LocationMap = dynamic(() => import('@/components/pwa/LocationMap'), { ssr: false });
 
 
-
-
-
 const ManagerDashboard = ({ user }: { user: User }) => {
   const [activeTab, setActiveTab] = useState("overview")
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null)
