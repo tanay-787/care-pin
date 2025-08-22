@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CarePin - Healthcare Worker Shift Management PWA
 
-## Getting Started
+CarePin is a Progressive Web Application (PWA) designed to streamline shift management for healthcare workers. It provides an efficient way for healthcare organizations to track employee clock-ins and clock-outs with a modern, mobile-friendly interface.
 
-First, run the development server:
+## 🎯 Project Overview
 
+CarePin was developed as a take-home assignment project for lief@healthcare company. It serves as a comprehensive solution for:
+- ⏰ Shift timing management
+- 📱 Cross-platform accessibility (mobile & web)
+- 🏥 Healthcare organization employee tracking
+- 📊 Attendance monitoring
+
+## 🚀 Technology Stack
+
+CarePin is built using modern web technologies:
+
+- **Frontend:**
+  - Next.js - React framework for production
+  - Ant Design - UI component library
+  - Progressive Web App (PWA) capabilities
+
+- **Backend:**
+  - GraphQL - API query language
+  - Prisma - Next-generation ORM
+  - NeonDB - Serverless Postgres database
+
+- **Authentication:**
+  - Auth0 - Secure authentication service
+
+## 🛠️ Getting Started
+
+### Prerequisites
+- Node.js (LTS version recommended)
+- npm or yarn package manager
+- A NeonDB account
+- Auth0 account and configuration
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/tanay-787/care-pin.git
+cd care-pin
+```
+
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Set up environment variables:
+Create a `.env.local` file in the root directory and add necessary environment variables.
+
+4. Run the development server:
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🌟 Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Progressive Web App functionality
+- Responsive design for both mobile and desktop
+- Secure authentication with Auth0
+- Real-time shift tracking
+- User-friendly interface with Ant Design
+- GraphQL API integration
+- Persistent data storage with NeonDB
 
-## Learn More
+## 📱 PWA Features
 
-To learn more about Next.js, take a look at the following resources:
+- Installable on mobile devices
+- Offline functionality
+- Push notifications support
+- Native app-like experience
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 💻 Development
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The application uses Next.js app router and follows modern React patterns. Key directories:
+- `/app` - Application routes and pages
+- `/components` - Reusable React components
+- `/graphql` - GraphQL schemas and resolvers
+- `/prisma` - Database schema and migrations
 
-## Deploy on Vercel
+## 📝 License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+[Add your license information here]
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome. Feel free to check issues page if you want to contribute.
+
+## 👥 Authors
+
+- **Tanay** - Initial work - [tanay-787](https://github.com/tanay-787)
+
+---
+
+Built with ❤️ for healthcare workers
