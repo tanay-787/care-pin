@@ -1,77 +1,47 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useQuery, useMutation } from "@apollo/client"
 import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Table,
-  Tag,
-  Button,
-  Space,
   Typography,
-  Tabs,
+  Layout, Menu, theme,
   Form,
-  Input,
-  Switch,
-  InputNumber,
-  Modal,
   DatePicker,
   Spin,
-  Alert,
   message,
-  Divider,
-  ConfigProvider,
 } from "antd"
-import {
-  UserOutlined,
-  ClockCircleOutlined,
-  EnvironmentOutlined,
-  LogoutOutlined,
-  HistoryOutlined,
-  CheckCircleOutlined,
-  TeamOutlined,
-  StopOutlined,
-  BarChartOutlined,
-} from "@ant-design/icons"
 import {
   GET_ALL_USERS,
   GET_ALL_SHIFTS,
   GET_LOCATION_PERIMETER,
   UPDATE_LOCATION_PERIMETER,
-  GET_USER_SHIFTS,
-  CLOCK_IN,
-  CLOCK_OUT,
 } from "@/lib/graphql-queries"
-
-import UserButton from "@/components/UserButton"
-import Select from "antd/lib/select"
 import { useRouter } from "next/navigation"
 import dynamic from 'next/dynamic';
+import { UserOutlined, ClockCircleOutlined, EnvironmentOutlined, TeamOutlined, BarChartOutlined } from '@ant-design/icons';
 import type { User } from "@/lib/types"
 
 import DashboardNavBar from "./NavBar"
 import OverviewTab from "@/components/manager/OverviewTab";
 import StaffTab from "@/components/manager/StaffTab";
-import LocationSettingsTab from "@/components/manager/LocationSettingsTab";
 import ShiftLogsTab from "@/components/manager/ShiftLogsTab";
+import LocationSettingsTab from "@/components/manager/LocationSettingsTab";
 
-const { Title, Text, Paragraph } = Typography
-const { TabPane } = Tabs
-const { RangePicker } = DatePicker
+
 const { useForm } = Form;
-const LocationMap = dynamic(() => import('@/components/pwa/LocationMap'), { ssr: false });
-
+const { Header, Content, Footer, Sider } = Layout;
 
 const ManagerDashboard = ({ user }: { user: User }) => {
   const [activeTab, setActiveTab] = useState("overview")
+  const [collapsed, setCollapsed] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null)
   const [form] = useForm();
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
   const [messageApi, contextHolder] = message.useMessage();
   const router = useRouter();
-  
+
 
   // GraphQL queries and mutations
   const { data: usersData, loading: usersLoading } = useQuery(GET_ALL_USERS)
@@ -135,12 +105,12 @@ const ManagerDashboard = ({ user }: { user: User }) => {
       console.log(form.getFieldsValue());
 
       await updatePerimeter({
-        variables: { 
-            radiusKm: formValues.radius,
-            address: formValues.centerAddress,
-            centerLatitude: formValues.centerLat,
-            centerLongitude: formValues.centerLng,
-            isActive: true,
+        variables: {
+          radiusKm: formValues.radius,
+          address: formValues.centerAddress,
+          centerLatitude: formValues.centerLat,
+          centerLongitude: formValues.centerLng,
+          isActive: true,
         },
         refetchQueries: [{ query: GET_LOCATION_PERIMETER }],
       })
@@ -151,7 +121,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
       messageApi.error("Failed to update perimeter settings")
     }
   }
-  
+
   // Data preparation for Manager Shift History Table
   const getShiftHistory = () => {
     if (!allShifts) return [];
@@ -176,70 +146,101 @@ const ManagerDashboard = ({ user }: { user: User }) => {
       });
   };
 
+  const siderStyle: React.CSSProperties = {
+    overflow: 'auto',
+    height: '100vh',
+    position: 'sticky',
+    insetInlineStart: 0,
+    top: 0,
+    bottom: 0,
+  };
+
   if (usersLoading || shiftsLoading || perimeterLoading) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#f0f2f5" }}>
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
         <Spin size="large" />
         <div style={{ marginTop: 16 }}>Loading dashboard...</div>
       </div>
     )
   }
 
-  const tabItems = [
+  const menuItems = [
     {
       key: "overview",
+      icon: <BarChartOutlined />,
       label: "Overview",
-      children: (
-        <OverviewTab
+    },
+    {
+      key: "staff",
+      icon: <TeamOutlined />,
+      label: "Staff",
+    },
+    {
+      key: "logs",
+      icon: <ClockCircleOutlined />,
+      label: "Shift Logs",
+    },
+    {
+      key: "location",
+      icon: <EnvironmentOutlined />,
+      label: "Location Settings",
+    }
+  ];
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "overview":
+        return (
+          <OverviewTab
+            currentlyWorking={currentlyWorking}
+            workers={totalWorkers}
+            todayShifts={todayShifts}
+            avgHoursPerDay={avgHoursPerDay}
+            allShifts={allShifts}
+            onViewWorkerLogs={handleViewWorkerLogs}
+          />
+        );
+      case "staff":
+        return <StaffTab users={allUsers} onViewWorkerLogs={handleViewWorkerLogs} />;
+      case "logs":
+        return <ShiftLogsTab shifts={getShiftHistory()} workers={workers} selectedWorker={selectedWorker} onSelectWorker={setSelectedWorker} />;
+      case "location":
+        return (
+          <LocationSettingsTab
+            perimeterSettings={perimeterSettings}
+            form={form}
+            onUpdatePerimeter={handleUpdatePerimeter}
+          />
+        );
+      default:
+        return <OverviewTab
           currentlyWorking={currentlyWorking}
           workers={totalWorkers}
           todayShifts={todayShifts}
           avgHoursPerDay={avgHoursPerDay}
           allShifts={allShifts}
           onViewWorkerLogs={handleViewWorkerLogs}
-        />
-      ),
-    },
-    {
-      key: "staff",
-      label: "Staff",
-      children: (
-        <StaffTab users={allUsers} onViewWorkerLogs={handleViewWorkerLogs} />
-      ),
-    },
-    {
-      key: "location",
-      label: "Location Settings",
-      children: (
-        <LocationSettingsTab
-          perimeterSettings={perimeterSettings}
-          form={form}
-          onUpdatePerimeter={handleUpdatePerimeter}
-        />
-      ),
-    },
-    {
-      key: "logs",
-      label: "Shift Logs",
-      children: (
-        <ShiftLogsTab
-          shifts={getShiftHistory()}
-          workers={workers}
-          selectedWorker={selectedWorker}
-          onSelectWorker={setSelectedWorker}
-        />
-      ),
-    },
-  ];
+        />;
+    }
+  };
+
   return (
     <>
-    {contextHolder}
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      <DashboardNavBar/>
-      <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
-      <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} size="large" />
-      </div>
-    </div>
+      {contextHolder}
+      <Layout style={{ minHeight: '100vh' }}>
+        <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} style={siderStyle}>
+          <div className="demo-logo-vertical" />
+          <Menu theme="dark" mode="inline" defaultSelectedKeys={[activeTab]} selectedKeys={[activeTab]} items={menuItems} onClick={({ key }) => setActiveTab(key as string)} />
+        </Sider>
+        <Layout>
+          <DashboardNavBar /> {/* This acts as the Header */}
+          <Content style={{ margin: '24px 16px 0', overflow: 'initial' }}>
+            <div style={{ padding: 24, minHeight: 360, background: colorBgContainer, borderRadius: borderRadiusLG }}>
+              {renderContent()}
+            </div>
+          </Content>
+        </Layout>
+      </Layout>
     </>
   )
 }

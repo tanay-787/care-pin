@@ -17,9 +17,8 @@ const serwist = new Serwist({
   runtimeCaching: defaultCache,
 });
 
-/// 1. Custom push listener (should be registered early)
+
 self.addEventListener("push", (event) => {
-  console.log("[SW] Push received:", event);
   const data = event.data?.json?.() || { title: "Hi", message: "" };
   event.waitUntil(
     self.registration.showNotification(data.title, {
@@ -29,7 +28,7 @@ self.addEventListener("push", (event) => {
   );
 });
 
-// 2. Notification click handler follows
+
 self.addEventListener("notificationclick", (event) => {
   console.log("[SW] Notification clicked");
   event.notification.close();
@@ -47,5 +46,5 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-// // 3. Then Serwist’s handlers
+
 serwist.addEventListeners();
