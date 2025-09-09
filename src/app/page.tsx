@@ -184,7 +184,7 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
             marginTop: "1rem",
           }}
         >
-          Trusted by 500+ care organizations who wanted something simple
+          For the care organizations who wanted something simple
           that works
         </Paragraph>
       </Space>
