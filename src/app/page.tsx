@@ -420,8 +420,13 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
           <Col xs={24} md={6}>
             <Space direction="vertical" size="large">
               <Space align="center">
-                <SafetyOutlined style={{ fontSize: "24px", color: "#1890ff" }} />
-                <Title level={4} style={{ color: "white", margin: 0 }}>
+                {/* <SafetyOutlined style={{ fontSize: "24px", color: "#1890ff" }} /> */}
+                <Image
+        src={Logo}
+        alt="CarePin"
+        style={{ height: "1.4rem", width: "1.4rem" }}
+      />
+                <Title level={3} style={{ color: "white", margin: 0 }}>
                   CarePin
                 </Title>
               </Space>
