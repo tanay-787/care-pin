@@ -27,12 +27,11 @@ import {
 import UserButton from '@/components/UserButton';
 import Image from "next/image";
 import HeroImage from "../../public/hero-img.png";
-import FeatureOne from "../../public/feature-one.png";
-import FeatureTwo from "../../public/feature-two.png";
-import FeatureThree from "../../public/feature-three.png";
 import Logo from "../../public/logo.png"
 import { useRouter } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0";
+import FeatureSectionAntd from "@/components/landing/FeatureSection";
+import HeroSection from "@/components/landing/HeroSection"
 
 
 const { Header, Content, Footer } = Layout
@@ -87,7 +86,7 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
       <Image
         src={Logo}
         alt="CarePin"
-        style={{ height: "2rem", width: "2rem" }}
+        style={{ height: "1.7rem", width: "1.7rem" }}
       />
       <Title
         level={2}
@@ -109,10 +108,9 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
 
 
 
-      <Content style={{ marginTop: "64px", background: "#f2f0ef" }}>
+      <Content style={{ marginTop: "32px", background: "#f2f0ef" }}>
         {/* Hero Section */}
-
-<div style={{ padding: "80px 24px", background: "#f2f0ef" }}>
+        <div style={{ padding: "64px 32px", maxWidth: 1160, margin: "0 auto", background: "#f2f0ef" }}>
   <Row gutter={[48, 48]} align="middle">
     {/* Text Column */}
     <Col xs={24} md={12}>
@@ -120,26 +118,26 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
         <Title
           level={1}
           style={{
-            fontSize: "clamp(2rem, 4vw, 3.8rem)", // responsive scaling
-            lineHeight: "1.25", // Golden ratio for readability
+            fontSize: "clamp(2.5rem, 1rem + 8vw, 4.5rem);", // responsive scaling
+            lineHeight: "1.1", // Golden ratio for readability
             color: "#1a1a1a",
             fontWeight: 700,
             margin: 0,
+          letterSpacing: "-0.02em",
           }}
         >
-          CareWorker Tracking Made Simple
+         {"Care"+" Check-ins,"+" Managed"}
         </Title>
 
         <Paragraph
           style={{
-            fontSize: "clamp(0.9rem, 1.5vw, 1.2rem)",
+            fontSize: "clamp(0.9rem, 3vw, 1rem)",
             color: "#666",
             lineHeight: 1.6,
-            maxWidth: "40ch", // keeps optimal reading width
+            maxWidth: "50ch", // keeps optimal reading width
           }}
         >
-          Know where your care workers are and when they arrive. Simple
-          location tracking that just works, so you can focus on what
+         Simple location tracking that just works, so you can focus on what
           matters most - providing great care.
         </Paragraph>
 
@@ -176,251 +174,24 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
             Watch Demo
           </Button>
         </Space>
-
-        <Paragraph
-          style={{
-            fontSize: "0.9rem",
-            color: "#999",
-            marginTop: "1rem",
-          }}
-        >
-          For the care organizations who wanted something simple
-          that works
-        </Paragraph>
       </Space>
     </Col>
 
     {/* Image Column */}
-    <Col xs={24} md={12}>
-      <div style={{ textAlign: "center" }}>
-        <Image
-          src={HeroImage}
-          alt="CarePin"
-          style={{
-            width: "100%",
-            maxWidth: "600px",
-            height: "auto",
-            borderRadius: "12px",
-          }}
-        />
-      </div>
-    </Col>
+    <Col xs={24} md={12}> 
+    <div style={{ textAlign: "center" }}> 
+      <Image src={HeroImage} alt="CarePin" style={{ width: "100%", maxWidth: "600px", height: "auto", borderRadius: "12px", }} />
+       </div> 
+       </Col>
   </Row>
 </div>
 
 
         {/* What Makes CarePin Stand Out Section */}
-<div style={{ background: "#001529", padding: "80px 24px", color: "white" }}>
-  {/* Section Title */}
-  <Row justify="center" style={{ marginBottom: "64px" }}>
-    <Col xs={24} md={18} lg={14} style={{ textAlign: "center" }}>
-      <Title
-        level={2}
-        style={{
-          color: "white",
-          fontSize: "clamp(1.8rem, 3vw, 3rem)", // responsive scaling
-          lineHeight: 1.25,
-          fontWeight: 600,
-          marginBottom: "1rem",
-        }}
-      >
-        What Makes CarePin Stand Out?
-      </Title>
-    </Col>
-  </Row>
-
-  {/* Feature Rows */}
-  <Row gutter={[48, 64]} align="middle">
-    {/* Feature 1 */}
-    <Col xs={24} lg={12}>
-      <Space direction="vertical" size="large">
-        <div
-          style={{
-            background: "#1890ff",
-            width: "48px",
-            height: "48px",
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "18px",
-            fontWeight: "bold",
-            color: "white",
-          }}
-        >
-          01
-        </div>
-        <Title
-          level={3}
-          style={{
-            color: "white",
-            fontSize: "clamp(1.5rem, 2.2vw, 2.2rem)",
-            lineHeight: 1.3,
-          }}
-        >
-          No more guessing games!
-        </Title>
-        <Paragraph
-          style={{
-            color: "rgba(255,255,255,0.85)",
-            fontSize: "clamp(0.95rem, 1.4vw, 1.1rem)",
-            lineHeight: 1.6,
-            maxWidth: "50ch",
-          }}
-        >
-          Care workers simply tap to check in when they arrive. You instantly 
-          know who’s where, when they arrived, and if they’re running late.
-        </Paragraph>
-        <Space direction="vertical" size={4}>
-          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ One-tap check-in</Text>
-          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Instant notifications</Text>
-          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Real-time location updates</Text>
-        </Space>
-      </Space>
-    </Col>
-    <Col xs={24} lg={12}>
-      <div style={{ textAlign: "center" }}>
-        <Image
-          src={FeatureOne}
-          alt="Location Check-in"
-          style={{
-            width: "100%",
-            maxWidth: "520px",
-            height: "auto",
-            borderRadius: "12px",
-          }}
-        />
-      </div>
-    </Col>
-
-    {/* Feature 2 */}
-    <Col xs={24} lg={{ span: 12 }}>
-      <div style={{ textAlign: "center" }}>
-        <Image
-          src={FeatureTwo}
-          alt="Analytics Dashboard"
-          style={{
-            width: "100%",
-            maxWidth: "520px",
-            height: "auto",
-            borderRadius: "12px",
-          }}
-        />
-      </div>
-    </Col>
-    <Col xs={24} lg={{ span: 12}}>
-      <Space direction="vertical" size="large">
-        <div
-          style={{
-            background: "#1890ff",
-            width: "48px",
-            height: "48px",
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "18px",
-            fontWeight: "bold",
-            color: "white",
-          }}
-        >
-          02
-        </div>
-        <Title
-          level={3}
-          style={{
-            color: "white",
-            fontSize: "clamp(1.5rem, 2.2vw, 2.2rem)",
-            lineHeight: 1.3,
-          }}
-        >
-          Get the reports you need, when you need them
-        </Title>
-        <Paragraph
-          style={{
-            color: "rgba(255,255,255,0.85)",
-            fontSize: "clamp(0.95rem, 1.4vw, 1.1rem)",
-            lineHeight: 1.6,
-            maxWidth: "50ch",
-          }}
-        >
-          Click a button, get a report. See who worked where, for how long, 
-          and when. Perfect for payroll, compliance, or just keeping track.
-        </Paragraph>
-        <Space direction="vertical" size={4}>
-          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ One-click reports</Text>
-          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Simple daily summaries</Text>
-          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Easy payroll export</Text>
-        </Space>
-      </Space>
-    </Col>
-
-    {/* Feature 3 */}
-    <Col xs={24} lg={12}>
-      <Space direction="vertical" size="large">
-        <div
-          style={{
-            background: "#1890ff",
-            width: "48px",
-            height: "48px",
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "18px",
-            fontWeight: "bold",
-            color: "white",
-          }}
-        >
-          03
-        </div>
-        <Title
-          level={3}
-          style={{
-            color: "white",
-            fontSize: "clamp(1.5rem, 2.2vw, 2.2rem)",
-            lineHeight: 1.3,
-          }}
-        >
-          Works on any phone, anywhere
-        </Title>
-        <Paragraph
-          style={{
-            color: "rgba(255,255,255,0.85)",
-            fontSize: "clamp(0.95rem, 1.4vw, 1.1rem)",
-            lineHeight: 1.6,
-            maxWidth: "50ch",
-          }}
-        >
-          Your care workers already have phones. That’s all they need. No 
-          special equipment, no complicated setup. Just download and start.
-        </Paragraph>
-        <Space direction="vertical" size={4}>
-          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Works on iPhone & Android</Text>
-          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Set up in minutes</Text>
-          <Text style={{ color: "rgba(255,255,255,0.9)" }}>✓ Simple, clean interface</Text>
-        </Space>
-      </Space>
-    </Col>
-    <Col xs={24} lg={12}>
-      <div style={{ textAlign: "center" }}>
-        <Image
-          src={FeatureThree}
-          alt="Ease of Access"
-          style={{
-            width: "100%",
-            maxWidth: "520px",
-            height: "auto",
-            borderRadius: "12px",
-          }}
-        />
-      </div>
-    </Col>
-  </Row>
-</div>
-
-
-       {/* Stats Section */}
+        <FeatureSectionAntd />
+        
+        
+         {/* Stats Section */}
 <div style={{ padding: "64px 32px", background: "#f2f0ef" }}>
   <div style={{ textAlign: "center", marginBottom: "64px" }}>
     <h2 style={{ fontSize: "2.6rem", marginBottom: "16px", fontWeight: 600 }}>
@@ -489,8 +260,8 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
               >
                 <Space direction="vertical" size="large">
                   <Paragraph style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}>
-                    `&quot;`CarePin has revolutionized how we manage our care staff. The location-based check-ins ensure
-                    accountability while the dashboard gives us real-time insights.`&quot;`
+                    &quot;CarePin has revolutionized how we manage our care staff. The location-based check-ins ensure
+                    accountability while the dashboard gives us real-time insights.&quot;
                   </Paragraph>
                   <Space>
                     <Avatar size={48} style={{ backgroundColor: "#1890ff" }}>
@@ -518,8 +289,8 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
               >
                 <Space direction="vertical" size="large">
                   <Paragraph style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}>
-                  `&quot;`The mobile-first design is perfect for our field workers. They can easily clock in and add notes,
-                    making our operations much more efficient.`&quot;`
+                  &quot;The mobile-first design is perfect for our field workers. They can easily clock in and add notes,
+                    making our operations much more efficient.&quot;
                   </Paragraph>
                   <Space>
                     <Avatar size={48} style={{ backgroundColor: "#1890ff" }}>
@@ -547,8 +318,8 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
               >
                 <Space direction="vertical" size="large">
                   <Paragraph style={{ fontSize: "16px", color: "#666", lineHeight: "1.6" }}>
-                  `&quot;`Implementation was seamless and the support team is outstanding. CarePin has improved our
-                    compliance and reduced administrative overhead significantly.`&quot;`
+                  &quot;Implementation was seamless and the support team is outstanding. CarePin has improved our
+                    compliance and reduced administrative overhead significantly.&quot;
                   </Paragraph>
                   <Space>
                     <Avatar size={48} style={{ backgroundColor: "#1890ff" }}>
@@ -629,7 +400,7 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
                   </Button>
                 </Form.Item>
               </Form>
-              <Paragraph
+              {/* <Paragraph
                 style={{
                   marginTop: "16px",
                   color: "rgba(255,255,255,0.8)",
@@ -637,7 +408,7 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
                 }}
               >
                 No credit card required • 14-day free trial • Setup in 5 minutes
-              </Paragraph>
+              </Paragraph> */}
             </Col>
           </Row>
         </div>
