@@ -79,14 +79,14 @@ const ManagerDashboard = ({ user }: { user: User }) => {
 
   const today = new Date().toDateString()
   const todayShifts = allShifts.filter((shift: any) => {
-    return new Date(shift.clockInTime).toDateString() === today
+    return new Date(parseInt(shift.clockInTime, 10)).toDateString() === today
   })
 
   const avgHoursPerDay =
     todayShifts.reduce((acc: number, shift: any) => {
       if (shift.clockOutTime) {
         const hours =
-          (new Date(shift.clockOutTime).getTime() - new Date(shift.clockInTime).getTime()) / (1000 * 60 * 60)
+          (new Date(parseInt(shift.clockOutTime, 10)).getTime() - new Date(parseInt(shift.clockInTime, 10)).getTime()) / (1000 * 60 * 60)
         return acc + hours
       }
       return acc
@@ -198,6 +198,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
             avgHoursPerDay={avgHoursPerDay}
             allShifts={allShifts}
             onViewWorkerLogs={handleViewWorkerLogs}
+            formatDuration={formatDuration}
           />
         );
       case "staff":
@@ -220,6 +221,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
           avgHoursPerDay={avgHoursPerDay}
           allShifts={allShifts}
           onViewWorkerLogs={handleViewWorkerLogs}
+          formatDuration={formatDuration}
         />;
     }
   };

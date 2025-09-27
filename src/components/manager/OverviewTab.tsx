@@ -14,6 +14,7 @@ interface OverviewTabProps {
   avgHoursPerDay: number;
   todayShifts: Shift[];
   onViewWorkerLogs: (workerId: string) => void;
+  formatDuration: (startTime: string | number, endTime: string | number | null) => string;
 }
 
 const OverviewTab: FC<OverviewTabProps> = ({
@@ -23,6 +24,7 @@ const OverviewTab: FC<OverviewTabProps> = ({
   avgHoursPerDay,
   todayShifts,
   onViewWorkerLogs,
+  formatDuration,
 }) => {
   return (
     <div>
@@ -90,16 +92,15 @@ const OverviewTab: FC<OverviewTabProps> = ({
             {
               title: "Clock In Time",
               render: (_: unknown, record: any) =>
-                record.currentShift ? new Date(record.currentShift.clockInTime).toLocaleTimeString() : "-",
+                record.currentShift
+                  ? new Date(parseInt(record.currentShift.clockInTime, 10)).toLocaleString()
+                  : "-",
             },
             {
               title: "Duration",
               render: (_: unknown, record: any) => {
                 if (record.currentShift) {
-                  const duration = Date.now() - new Date(record.currentShift.clockInTime).getTime();
-                  const hours = Math.floor(duration / (1000 * 60 * 60));
-                  const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-                  return `${hours}h ${minutes}m`;
+                  return formatDuration(record.currentShift.clockInTime, null);
                 }
                 return "-";
               },
