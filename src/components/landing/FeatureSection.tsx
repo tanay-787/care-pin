@@ -30,7 +30,7 @@ export type Feature = {
   alt?: string
 }
 
-export default function FeatureSectionAntd({
+export default function FeatureSection({
   features = defaultFeatures,
   heading = "What Makes CarePin Stand Out?",
   subheading = "Simple, transparent, and built for teams that care.",

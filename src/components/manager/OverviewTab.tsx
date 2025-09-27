@@ -8,7 +8,7 @@ import type { User, Shift } from "@/lib/types";
 const { Text } = Typography;
 
 interface OverviewTabProps {
-  workers: User[];
+  workers: number;
   currentlyWorking: User[];
   allShifts: Shift[];
   avgHoursPerDay: number;
@@ -41,7 +41,7 @@ const OverviewTab: FC<OverviewTabProps> = ({
           <Card>
             <Statistic
               title="Total Staff"
-              value={workers.length}
+              value={workers}
               prefix={<TeamOutlined />}
               valueStyle={{ color: "#1890ff" }}
             />

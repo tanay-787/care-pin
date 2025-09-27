@@ -1,143 +1,143 @@
 "use client"
+import { Button, Typography, Row, Col, Space, Modal } from "antd"
+import { useState } from "react";
+import Image from "next/image";
+import HeroImage from "../../../public/hero-img.png";
+import { PlayCircleOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
+const { Title, Paragraph, Text } = Typography
 
-import React from "react"
-import { Row, Col, Button, Typography, Space, Form, Input } from "antd"
-import { MailOutlined, PlayCircleOutlined } from "@ant-design/icons"
-import NextImage from "next/image"
-import { motion } from "motion/react"
+interface HeroSectionProps {
+  user: any | undefined;
+}
 
-const { Title, Paragraph } = Typography
-
-export default function HeroSectionAntd({
-  heading = "Track careworkers, Instantly",
-  subheading =
-    "Simple location tracking that just works, so you can focus on what matters most - providing great care.",
-  ctaLabel = "Get Started",
-  onCta = () => {},
-}: {
-  heading?: string
-  subheading?: string
-  ctaLabel?: string
-  onCta?: () => void
-}) {
+export default function HeroSection({ user }: HeroSectionProps) {
+  const router = useRouter();
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
   return (
-    <section style={{ background: "#f2f0ef", padding: "64px 16px" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <Row gutter={[48, 48]} align="middle">
-          <Col xs={24} md={12}>
-            <div style={{ maxWidth: 680 }}>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45 }}
+    <div style={{ padding: "64px 32px", maxWidth: 1160, margin: "0 auto", background: "#f2f0ef" }}>
+      <Row gutter={[48, 48]} align="middle">
+        {/* Text Column */}
+        <Col xs={24} md={12}>
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
+            <Title
+              level={1}
+              style={{
+                fontSize: "clamp(2.5rem, 1rem + 8vw, 4.5rem);", // responsive scaling
+                lineHeight: "1.1", // Golden ratio for readability
+                color: "#1a1a1a",
+                fontWeight: 700,
+                margin: 0,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              {"Care" + " Check-ins," + " Managed"}
+            </Title>
+
+            <Paragraph
+              style={{
+                fontSize: "clamp(0.9rem, 3vw, 1rem)",
+                color: "#666",
+                lineHeight: 1.6,
+                maxWidth: "50ch", // keeps optimal reading width
+              }}
+            >
+              Simple location tracking that just works, so you can focus on what
+              matters most - providing great care.
+            </Paragraph>
+
+            {/* Buttons */}
+            <Space size="middle" wrap>
+              <Button
+                type="primary"
+                size="large"
+                style={{
+                  height: "48px",
+                  fontSize: "1rem",
+                  padding: "0 2rem",
+                  borderRadius: "8px",
+                  fontWeight: 600,
+                }}
+                onClick={() => {
+                  router.push("/dashboard")
+                }}
               >
-                <Title
-                  level={1}
-                  style={{
-                    fontSize: "clamp(2rem, 4vw, 3.8rem)",
-                    lineHeight: 1.15,
-                    color: "#111827",
-                    marginBottom: 8,
-                  }}
-                >
-                  {heading}
-                </Title>
-              </motion.div>
-
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
-                <Paragraph style={{ color: "#4b5563", fontSize: "clamp(0.95rem,1.2vw,1.15rem)", maxWidth: "40ch" }}>
-                  {subheading}
-                </Paragraph>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
-                className="hero-cta"
+                {user ? 'To Dashboard' : 'Get Started'}
+              </Button>
+              <Button
+                size="large"
+                icon={<PlayCircleOutlined />}
+                style={{
+                  height: "48px",
+                  fontSize: "1rem",
+                  padding: "0 2rem",
+                  borderColor: "#d9d9d9",
+                  color: "#666",
+                  borderRadius: "8px",
+                }}
+                onClick={() => setIsDemoOpen(true)}
               >
-                <Space size="middle" wrap>
-                  <Button type="primary" size="large" onClick={onCta} style={{ height: 48, padding: "0 24px", borderRadius: 10 }}>
-                    {ctaLabel}
-                  </Button>
+                Try Demo
+              </Button>
+            </Space>
+          </Space>
+        </Col>
 
-                  <Button size="large" icon={<PlayCircleOutlined />} style={{ height: 48, borderRadius: 10 }}>
-                    Watch Demo
-                  </Button>
-                </Space>
+        {/* Image Column */}
+        <Col xs={24} md={12}>
+          <div style={{ textAlign: "center" }}>
+            <Image src={HeroImage} alt="CarePin" style={{ width: "100%", maxWidth: "600px", height: "auto", borderRadius: "12px", }} />
+          </div>
+        </Col>
+      </Row>
+      {/* Demo Credentials Modal */}
+      <Modal
+        title="Demo credentials"
+        open={isDemoOpen}
+        onCancel={() => setIsDemoOpen(false)}
+        footer={[
+          <Button key="close" onClick={() => setIsDemoOpen(false)}>
+            Close
+          </Button>,
+        ]}
+      >
+        <Paragraph>
+          Use these demo credentials to sign in and explore both dashboards. Each
+          field is copyable — click the value to copy it to your clipboard.
+        </Paragraph>
 
-              </motion.div>
+
+        <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ padding: 12, borderRadius: 8, background: "#fff", border: "1px solid #eee" }}>
+            <Title level={5} style={{ marginBottom: 8 }}>
+              Manager Creds
+            </Title>
+            <div style={{ marginBottom: 6 }}>
+              <Text strong>Email: </Text>
+              <Text copyable={{ text: "manager1@test.com" }}>manager1@test.com</Text>
             </div>
-          </Col>
-
-          <Col xs={24} md={12}>
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              {/* Decorative layered cards + hero image to resemble the Shadcn mockup */}
-              <div style={{ position: "relative", width: 520, maxWidth: "92%" }}>
-                {/* Back floating card */}
-                <div
-                  aria-hidden
-                  style={{
-                    position: "absolute",
-                    left: -24,
-                    top: -20,
-                    width: 220,
-                    height: 220,
-                    borderRadius: 24,
-                    background: "rgba(59,130,246,0.06)",
-                    transform: "rotate(-8deg)",
-                    boxShadow: "0 12px 30px rgba(2,6,23,0.08)",
-                  }}
-                />
-
-                {/* Middle card with subtle border pattern */}
-                <div
-                  aria-hidden
-                  style={{
-                    position: "absolute",
-                    left: 12,
-                    top: 8,
-                    width: 300,
-                    height: 360,
-                    borderRadius: 20,
-                    background: "white",
-                    boxShadow: "0 18px 40px rgba(2,6,23,0.06)",
-                    border: "1px solid rgba(0,0,0,0.04)",
-                    overflow: "hidden",
-                  }}
-                />
-
-                {/* Main image card */}
-                <div style={{ position: "relative", borderRadius: 20, overflow: "hidden" }}>
-                  <NextImage src="/hero-img.png" alt="CarePin" width={520} height={360} style={{ display: "block", width: "100%", height: "auto" }} />
-                </div>
-
-                {/* Foreground small card (mock app preview) */}
-                <div
-                  aria-hidden
-                  style={{
-                    position: "absolute",
-                    right: -10,
-                    bottom: -18,
-                    width: 180,
-                    height: 120,
-                    borderRadius: 16,
-                    background: "rgba(17,24,39,0.96)",
-                    color: "white",
-                    padding: 12,
-                    transform: "translateX(4px)",
-                    boxShadow: "0 12px 30px rgba(2,6,23,0.12)",
-                  }}
-                >
-                  <div style={{ fontSize: 12, opacity: 0.9, marginBottom: 8 }}>Live view</div>
-                  <div style={{ height: 56, borderRadius: 8, background: "rgba(255,255,255,0.06)", marginBottom: 8 }} />
-                  <div style={{ height: 8, width: "60%", borderRadius: 6, background: "rgba(255,255,255,0.04)" }} />
-                </div>
-              </div>
+            <div>
+              <Text strong>Password: </Text>
+              <Text copyable={{ text: "manager@1" }}>manager@1</Text>
             </div>
-          </Col>
-        </Row>
-      </div>
-    </section>
+          </div>
+
+
+          <div style={{ padding: 12, borderRadius: 8, background: "#fff", border: "1px solid #eee" }}>
+            <Title level={5} style={{ marginBottom: 8 }}>
+              Careworker Creds
+            </Title>
+            <div style={{ marginBottom: 6 }}>
+              <Text strong>Email: </Text>
+              <Text copyable={{ text: "worker1@test.com" }}>worker1@test.com</Text>
+            </div>
+            <div>
+              <Text strong>Password: </Text>
+              <Text copyable={{ text: "worker@1" }}>worker@1</Text>
+            </div>
+          </div>
+        </div>
+      </Modal>
+    </div>
   )
 }

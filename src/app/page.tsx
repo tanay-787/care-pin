@@ -26,13 +26,11 @@ import {
 } from "@ant-design/icons"
 import UserButton from '@/components/UserButton';
 import Image from "next/image";
-import HeroImage from "../../public/hero-img.png";
 import Logo from "../../public/logo.png"
 import { useRouter } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0";
-import FeatureSectionAntd from "@/components/landing/FeatureSection";
-import HeroSection from "@/components/landing/HeroSection"
-
+import FeatureSection from "@/components/landing/FeatureSection";
+import HeroSection from "@/components/landing/HeroSection";
 
 const { Header, Content, Footer } = Layout
 const { Title, Paragraph, Text } = Typography
@@ -110,85 +108,11 @@ messageApi.success("Thank you for your interest! We'll be in touch soon.")
 
       <Content style={{ marginTop: "32px", background: "#f2f0ef" }}>
         {/* Hero Section */}
-        <div style={{ padding: "64px 32px", maxWidth: 1160, margin: "0 auto", background: "#f2f0ef" }}>
-  <Row gutter={[48, 48]} align="middle">
-    {/* Text Column */}
-    <Col xs={24} md={12}>
-      <Space direction="vertical" size="large" style={{ width: "100%" }}>
-        <Title
-          level={1}
-          style={{
-            fontSize: "clamp(2.5rem, 1rem + 8vw, 4.5rem);", // responsive scaling
-            lineHeight: "1.1", // Golden ratio for readability
-            color: "#1a1a1a",
-            fontWeight: 700,
-            margin: 0,
-          letterSpacing: "-0.02em",
-          }}
-        >
-         {"Care"+" Check-ins,"+" Managed"}
-        </Title>
-
-        <Paragraph
-          style={{
-            fontSize: "clamp(0.9rem, 3vw, 1rem)",
-            color: "#666",
-            lineHeight: 1.6,
-            maxWidth: "50ch", // keeps optimal reading width
-          }}
-        >
-         Simple location tracking that just works, so you can focus on what
-          matters most - providing great care.
-        </Paragraph>
-
-        {/* Buttons */}
-        <Space size="middle" wrap>
-          <Button
-            type="primary"
-            size="large"
-            style={{
-              height: "48px",
-              fontSize: "1rem",
-              padding: "0 2rem",
-              borderRadius: "8px",
-              fontWeight: 600,
-            }}
-            onClick={() => {
-              router.push("/dashboard")
-            }}
-          >
-            { user ? 'To Dashboard': 'Get Started'}
-          </Button>
-          <Button
-            size="large"
-            icon={<PlayCircleOutlined />}
-            style={{
-              height: "48px",
-              fontSize: "1rem",
-              padding: "0 2rem",
-              borderColor: "#d9d9d9",
-              color: "#666",
-              borderRadius: "8px",
-            }}
-          >
-            Watch Demo
-          </Button>
-        </Space>
-      </Space>
-    </Col>
-
-    {/* Image Column */}
-    <Col xs={24} md={12}> 
-    <div style={{ textAlign: "center" }}> 
-      <Image src={HeroImage} alt="CarePin" style={{ width: "100%", maxWidth: "600px", height: "auto", borderRadius: "12px", }} />
-       </div> 
-       </Col>
-  </Row>
-</div>
+        <HeroSection user={user} />
 
 
         {/* What Makes CarePin Stand Out Section */}
-        <FeatureSectionAntd />
+        <FeatureSection />
         
         
          {/* Stats Section */}
