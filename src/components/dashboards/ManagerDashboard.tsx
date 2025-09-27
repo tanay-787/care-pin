@@ -1,40 +1,47 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useQuery, useMutation } from "@apollo/client"
+import { useState, useCallback } from 'react';
+import { useQuery, useMutation } from '@apollo/client';
 import {
   Typography,
-  Layout, Menu, theme,
+  Layout,
+  Menu,
+  theme,
   Form,
   DatePicker,
   Spin,
   message,
-} from "antd"
+} from 'antd';
 import {
   GET_ALL_USERS,
   GET_ALL_SHIFTS,
   GET_LOCATION_PERIMETER,
   UPDATE_LOCATION_PERIMETER,
-} from "@/lib/graphql-queries"
-import { useRouter } from "next/navigation"
+} from '@/lib/graphql-queries';
+import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { UserOutlined, ClockCircleOutlined, EnvironmentOutlined, TeamOutlined, BarChartOutlined } from '@ant-design/icons';
-import type { User } from "@/lib/types"
+import {
+  UserOutlined,
+  ClockCircleOutlined,
+  EnvironmentOutlined,
+  TeamOutlined,
+  BarChartOutlined,
+} from '@ant-design/icons';
+import type { User } from '@/lib/types';
 
-import DashboardNavBar from "./NavBar"
-import OverviewTab from "@/components/manager/OverviewTab";
-import StaffTab from "@/components/manager/StaffTab";
-import ShiftLogsTab from "@/components/manager/ShiftLogsTab";
-import LocationSettingsTab from "@/components/manager/LocationSettingsTab";
-
+import DashboardNavBar from './NavBar';
+import OverviewTab from '@/components/manager/OverviewTab';
+import StaffTab from '@/components/manager/StaffTab';
+import ShiftLogsTab from '@/components/manager/ShiftLogsTab';
+import LocationSettingsTab from '@/components/manager/LocationSettingsTab';
 
 const { useForm } = Form;
 const { Header, Content, Footer, Sider } = Layout;
 
 const ManagerDashboard = ({ user }: { user: User }) => {
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState('overview');
   const [collapsed, setCollapsed] = useState(false);
-  const [selectedWorker, setSelectedWorker] = useState<string | null>(null)
+  const [selectedWorker, setSelectedWorker] = useState<string | null>(null);
   const [form] = useForm();
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -42,23 +49,39 @@ const ManagerDashboard = ({ user }: { user: User }) => {
   const [messageApi, contextHolder] = message.useMessage();
   const router = useRouter();
 
-
   // GraphQL queries and mutations
-  const { data: usersData, loading: usersLoading } = useQuery(GET_ALL_USERS)
-  const { data: shiftsData, loading: shiftsLoading } = useQuery(GET_ALL_SHIFTS)
-  const { data: perimeterData, loading: perimeterLoading } = useQuery(GET_LOCATION_PERIMETER)
-  const [updatePerimeter] = useMutation(UPDATE_LOCATION_PERIMETER)
+  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useQuery(GET_ALL_USERS);
+  const { data: shiftsData, loading: shiftsLoading, refetch: refetchShifts } = useQuery(GET_ALL_SHIFTS);
+  const { data: perimeterData, loading: perimeterLoading } = useQuery(GET_LOCATION_PERIMETER);
+  const [updatePerimeter] = useMutation(UPDATE_LOCATION_PERIMETER);
 
-  const allUsers = usersData?.getAllUsers || []
-  const allShifts = shiftsData?.getAllShifts || []
+  const allUsers = usersData?.getAllUsers || [];
+  const allShifts = shiftsData?.getAllShifts || [];
   const perimeterSettings = perimeterData?.getLocationPerimeter;
 
-  // Helper function to format duration
-  const formatDuration = (startTime: string | number, endTime: string | number | null) => {
-    const start = typeof startTime === "string" ? parseInt(startTime, 10) : startTime;
-    const end = endTime ? (typeof endTime === "string" ? parseInt(endTime, 10) : endTime) : Date.now();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-    if (end < start) return "Invalid Duration"; // Should not happen with correct data
+  // Function to handle data refreshing
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([refetchUsers(), refetchShifts()]);
+    } catch (error) {
+      messageApi.error('Failed to refresh data');
+    }
+    setIsRefreshing(false);
+  }, [refetchUsers, refetchShifts, messageApi]);
+
+  // Helper function to format duration
+  const formatDuration = (
+    startTime: string | number,
+    endTime: string | number | null
+  ) => {
+    const start = typeof startTime === 'string' ? parseInt(startTime, 10) : startTime;
+    const end =
+      endTime ? (typeof endTime === 'string' ? parseInt(endTime, 10) : endTime) : Date.now();
+
+    if (end < start) return 'Invalid Duration'; // Should not happen with correct data
 
     const diff = end - start;
     const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -71,31 +94,34 @@ const ManagerDashboard = ({ user }: { user: User }) => {
   };
 
   // Calculate statistics from real data
-  const workers = usersData?.getAllUsers?.filter((u: any) => u.role === "CARE_WORKER") || [];
+  const workers =
+    usersData?.getAllUsers?.filter((u: any) => u.role === 'CARE_WORKER') || [];
   const currentlyWorking = workers.filter((worker: any) =>
-    allShifts.some((shift: any) => shift.userId === worker.id && !shift.clockOutTime),
-  )
-  const totalWorkers = workers.length
+    allShifts.some((shift: any) => shift.userId === worker.id && !shift.clockOutTime)
+  );
+  const totalWorkers = workers.length;
 
-  const today = new Date().toDateString()
+  const today = new Date().toDateString();
   const todayShifts = allShifts.filter((shift: any) => {
-    return new Date(parseInt(shift.clockInTime, 10)).toDateString() === today
-  })
+    return new Date(parseInt(shift.clockInTime, 10)).toDateString() === today;
+  });
 
   const avgHoursPerDay =
     todayShifts.reduce((acc: number, shift: any) => {
       if (shift.clockOutTime) {
         const hours =
-          (new Date(parseInt(shift.clockOutTime, 10)).getTime() - new Date(parseInt(shift.clockInTime, 10)).getTime()) / (1000 * 60 * 60)
-        return acc + hours
+          (new Date(parseInt(shift.clockOutTime, 10)).getTime() -
+            new Date(parseInt(shift.clockInTime, 10)).getTime()) /
+          (1000 * 60 * 60);
+        return acc + hours;
       }
-      return acc
-    }, 0) / Math.max(todayShifts.length, 1)
+      return acc;
+    }, 0) / Math.max(todayShifts.length, 1);
 
   const handleViewWorkerLogs = (workerId: string) => {
-    setSelectedWorker(workerId)
-    setActiveTab("logs")
-  }
+    setSelectedWorker(workerId);
+    setActiveTab('logs');
+  };
 
   const handleUpdatePerimeter = async () => {
     try {
@@ -113,37 +139,40 @@ const ManagerDashboard = ({ user }: { user: User }) => {
           isActive: true,
         },
         refetchQueries: [{ query: GET_LOCATION_PERIMETER }],
-      })
-      messageApi.success("Perimeter settings updated successfully")
+      });
+      messageApi.success('Perimeter settings updated successfully');
       console.log(perimeterSettings);
       // router.refresh();
     } catch (error) {
-      messageApi.error("Failed to update perimeter settings")
+      messageApi.error('Failed to update perimeter settings');
     }
-  }
+  };
 
   // Data preparation for Manager Shift History Table
   const getShiftHistory = () => {
     if (!allShifts) return [];
 
-    return allShifts
-      .map((shift: any) => {
-        const clockIn = parseInt(shift.clockInTime, 10);
-        const clockOut = shift.clockOutTime ? parseInt(shift.clockOutTime, 10) : null;
+    return allShifts.map((shift: any) => {
+      const clockIn = parseInt(shift.clockInTime, 10);
+      const clockOut = shift.clockOutTime
+        ? parseInt(shift.clockOutTime, 10)
+        : null;
 
-        const durationInMs = clockOut ? clockOut - clockIn : Date.now() - clockIn;
-        const durationHours = durationInMs / (1000 * 60 * 60);
+      const durationInMs = clockOut ? clockOut - clockIn : Date.now() - clockIn;
+      const durationHours = durationInMs / (1000 * 60 * 60);
 
-        return {
-          ...shift,
-          key: shift.id,
-          workerName: shift.user.name || 'Unknown Worker',
-          clockInTimeFormatted: new Date(clockIn).toLocaleString(),
-          clockOutTimeFormatted: clockOut ? new Date(clockOut).toLocaleString() : "Still clocked in",
-          durationFormatted: formatDuration(clockIn, clockOut),
-          totalHours: durationHours, // Keep in hours for calculations
-        };
-      });
+      return {
+        ...shift,
+        key: shift.id,
+        workerName: shift.user.name || 'Unknown Worker',
+        clockInTimeFormatted: new Date(clockIn).toLocaleString(),
+        clockOutTimeFormatted: clockOut
+          ? new Date(clockOut).toLocaleString()
+          : 'Still clocked in',
+        durationFormatted: formatDuration(clockIn, clockOut),
+        totalHours: durationHours, // Keep in hours for calculations
+      };
+    });
   };
 
   const siderStyle: React.CSSProperties = {
@@ -157,39 +186,47 @@ const ManagerDashboard = ({ user }: { user: User }) => {
 
   if (usersLoading || shiftsLoading || perimeterLoading) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <Spin size="large" />
         <div style={{ marginTop: 16 }}>Loading dashboard...</div>
       </div>
-    )
+    );
   }
 
   const menuItems = [
     {
-      key: "overview",
+      key: 'overview',
       icon: <BarChartOutlined />,
-      label: "Overview",
+      label: 'Overview',
     },
     {
-      key: "staff",
+      key: 'staff',
       icon: <TeamOutlined />,
-      label: "Staff",
+      label: 'Staff',
     },
     {
-      key: "logs",
+      key: 'logs',
       icon: <ClockCircleOutlined />,
-      label: "Shift Logs",
+      label: 'Shift Logs',
     },
     {
-      key: "location",
+      key: 'location',
       icon: <EnvironmentOutlined />,
-      label: "Location Settings",
-    }
+      label: 'Location Settings',
+    },
   ];
 
   const renderContent = () => {
     switch (activeTab) {
-      case "overview":
+      case 'overview':
         return (
           <OverviewTab
             currentlyWorking={currentlyWorking}
@@ -199,13 +236,22 @@ const ManagerDashboard = ({ user }: { user: User }) => {
             allShifts={allShifts}
             onViewWorkerLogs={handleViewWorkerLogs}
             formatDuration={formatDuration}
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
           />
         );
-      case "staff":
+      case 'staff':
         return <StaffTab users={allUsers} onViewWorkerLogs={handleViewWorkerLogs} />;
-      case "logs":
-        return <ShiftLogsTab shifts={getShiftHistory()} workers={workers} selectedWorker={selectedWorker} onSelectWorker={setSelectedWorker} />;
-      case "location":
+      case 'logs':
+        return (
+          <ShiftLogsTab
+            shifts={getShiftHistory()}
+            workers={workers}
+            selectedWorker={selectedWorker}
+            onSelectWorker={setSelectedWorker}
+          />
+        );
+      case 'location':
         return (
           <LocationSettingsTab
             perimeterSettings={perimeterSettings}
@@ -214,15 +260,19 @@ const ManagerDashboard = ({ user }: { user: User }) => {
           />
         );
       default:
-        return <OverviewTab
-          currentlyWorking={currentlyWorking}
-          workers={totalWorkers}
-          todayShifts={todayShifts}
-          avgHoursPerDay={avgHoursPerDay}
-          allShifts={allShifts}
-          onViewWorkerLogs={handleViewWorkerLogs}
-          formatDuration={formatDuration}
-        />;
+        return (
+          <OverviewTab
+            currentlyWorking={currentlyWorking}
+            workers={totalWorkers}
+            todayShifts={todayShifts}
+            avgHoursPerDay={avgHoursPerDay}
+            allShifts={allShifts}
+            onViewWorkerLogs={handleViewWorkerLogs}
+            formatDuration={formatDuration}
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
+          />
+        );
     }
   };
 
@@ -230,21 +280,40 @@ const ManagerDashboard = ({ user }: { user: User }) => {
     <>
       {contextHolder}
       <Layout style={{ minHeight: '100vh' }}>
-        <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} style={siderStyle}>
+        <Sider
+          collapsible
+          collapsed={collapsed}
+          onCollapse={(value) => setCollapsed(value)}
+          style={siderStyle}
+        >
           <div className="demo-logo-vertical" />
-          <Menu theme="dark" mode="inline" defaultSelectedKeys={[activeTab]} selectedKeys={[activeTab]} items={menuItems} onClick={({ key }) => setActiveTab(key as string)} />
+          <Menu
+            theme="dark"
+            mode="inline"
+            defaultSelectedKeys={[activeTab]}
+            selectedKeys={[activeTab]}
+            items={menuItems}
+            onClick={({ key }) => setActiveTab(key as string)}
+          />
         </Sider>
         <Layout>
           <DashboardNavBar /> {/* This acts as the Header */}
           <Content style={{ margin: '24px 16px 0', overflow: 'initial' }}>
-            <div style={{ padding: 24, minHeight: 360, background: colorBgContainer, borderRadius: borderRadiusLG }}>
+            <div
+              style={{
+                padding: 24,
+                minHeight: 360,
+                background: colorBgContainer,
+                borderRadius: borderRadiusLG,
+              }}
+            >
               {renderContent()}
             </div>
           </Content>
         </Layout>
       </Layout>
     </>
-  )
-}
+  );
+};
 
 export default ManagerDashboard;

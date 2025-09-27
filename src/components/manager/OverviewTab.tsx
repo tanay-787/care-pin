@@ -1,9 +1,24 @@
-"use client";
+'use client';
 
-import { FC } from "react";
-import { Row, Col, Card, Statistic, Table, Tag, Typography, Button } from "antd";
-import { UserOutlined, TeamOutlined, ClockCircleOutlined, HistoryOutlined } from "@ant-design/icons";
-import type { User, Shift } from "@/lib/types";
+import { FC, useState, useEffect } from 'react';
+import {
+  Row,
+  Col,
+  Card,
+  Statistic,
+  Table,
+  Tag,
+  Typography,
+  Button,
+} from 'antd';
+import {
+  UserOutlined,
+  TeamOutlined,
+  ClockCircleOutlined,
+  HistoryOutlined,
+  RedoOutlined,
+} from '@ant-design/icons';
+import type { User, Shift } from '@/lib/types';
 
 const { Text } = Typography;
 
@@ -14,7 +29,12 @@ interface OverviewTabProps {
   avgHoursPerDay: number;
   todayShifts: Shift[];
   onViewWorkerLogs: (workerId: string) => void;
-  formatDuration: (startTime: string | number, endTime: string | number | null) => string;
+  formatDuration: (
+    startTime: string | number,
+    endTime: string | number | null
+  ) => string;
+  onRefresh: () => void;
+  isRefreshing: boolean;
 }
 
 const OverviewTab: FC<OverviewTabProps> = ({
@@ -25,7 +45,18 @@ const OverviewTab: FC<OverviewTabProps> = ({
   todayShifts,
   onViewWorkerLogs,
   formatDuration,
+  onRefresh,
+  isRefreshing,
 }) => {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTick((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div>
       <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
@@ -35,7 +66,7 @@ const OverviewTab: FC<OverviewTabProps> = ({
               title="Currently Working"
               value={currentlyWorking.length}
               prefix={<UserOutlined />}
-              valueStyle={{ color: "#52c41a" }}
+              valueStyle={{ color: '#52c41a' }}
             />
           </Card>
         </Col>
@@ -45,7 +76,7 @@ const OverviewTab: FC<OverviewTabProps> = ({
               title="Total Staff"
               value={workers}
               prefix={<TeamOutlined />}
-              valueStyle={{ color: "#1890ff" }}
+              valueStyle={{ color: '#1890ff' }}
             />
           </Card>
         </Col>
@@ -55,7 +86,7 @@ const OverviewTab: FC<OverviewTabProps> = ({
               title="Today's Clock-ins"
               value={todayShifts.length}
               prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: "#722ed1" }}
+              valueStyle={{ color: '#722ed1' }}
             />
           </Card>
         </Col>
@@ -66,16 +97,29 @@ const OverviewTab: FC<OverviewTabProps> = ({
               value={avgHoursPerDay}
               precision={1}
               prefix={<HistoryOutlined />}
-              valueStyle={{ color: "#fa8c16" }}
+              valueStyle={{ color: '#fa8c16' }}
             />
           </Card>
         </Col>
       </Row>
 
-      <Card title="Currently Working Staff">
+      <Card
+        title="Currently Working Staff"
+        extra={
+          <Button
+            icon={<RedoOutlined />}
+            onClick={onRefresh}
+            loading={isRefreshing}
+          >
+            Refresh
+          </Button>
+        }
+      >
         <Table
           dataSource={currentlyWorking.map((worker) => {
-            const currentShift = allShifts.find((s) => s.userId === worker.id && !s.clockOutTime);
+            const currentShift = allShifts.find(
+              (s) => s.userId === worker.id && !s.clockOutTime
+            );
             return { ...worker, currentShift };
           })}
           rowKey="id"
@@ -83,37 +127,47 @@ const OverviewTab: FC<OverviewTabProps> = ({
           scroll={{ x: true }}
           columns={[
             {
-              title: "Name",
-              dataIndex: "name",
-              key: "name",
+              title: 'Name',
+              dataIndex: 'name',
+              key: 'name',
               render: (name: string) => <Text strong>{name}</Text>,
             },
-            { title: "Status", render: () => <Tag color="green">Working</Tag> },
+            { title: 'Status', render: () => <Tag color="green">Working</Tag> },
             {
-              title: "Clock In Time",
+              title: 'Clock In Time',
               render: (_: unknown, record: any) =>
                 record.currentShift
-                  ? new Date(parseInt(record.currentShift.clockInTime, 10)).toLocaleString()
-                  : "-",
+                  ? new Date(
+                      parseInt(record.currentShift.clockInTime, 10)
+                    ).toLocaleString()
+                  : '-',
             },
             {
-              title: "Duration",
+              title: 'Duration',
               render: (_: unknown, record: any) => {
                 if (record.currentShift) {
                   return formatDuration(record.currentShift.clockInTime, null);
                 }
-                return "-";
+                return '-';
               },
             },
             {
-              title: "Location",
+              title: 'Location',
               render: (_: unknown, record: any) =>
-                record.currentShift?.clockInLocation ? <Tag color="green">Within Perimeter</Tag> : "-",
+                record.currentShift?.clockInLocation ? (
+                  <Tag color="green">Within Perimeter</Tag>
+                ) : (
+                  '-'
+                ),
             },
             {
-              title: "Actions",
+              title: 'Actions',
               render: (_: unknown, record: any) => (
-                <Button type="link" size="small" onClick={() => onViewWorkerLogs(record.id)}>
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={() => onViewWorkerLogs(record.id)}
+                >
                   View Logs
                 </Button>
               ),
