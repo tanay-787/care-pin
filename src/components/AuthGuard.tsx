@@ -7,7 +7,7 @@ import { UserOutlined, CrownOutlined } from '@ant-design/icons'; // Added icons
 import { useUser } from '@auth0/nextjs-auth0';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_CURRENT_USER, CREATE_OR_UPDATE_USER } from '@/lib/graphql-queries';
-import { User } from '@/app/dashboard/page'
+import { User } from '@/lib/types'
 
 const { Title, Paragraph, Text } = Typography; 
 

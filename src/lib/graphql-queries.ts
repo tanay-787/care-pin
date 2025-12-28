@@ -1,63 +1,52 @@
 import { gql } from '@apollo/client';
 
+const USER_FRAGMENT = gql`
+  fragment UserFields on User {
+    id
+    email
+    name
+    role
+    createdAt
+    auth0Id
+    autoGeoAlerts
+    isInPerimeter
+  }
+`;
+
 // User Queries
 export const GET_CURRENT_USER = gql`
+  ${USER_FRAGMENT}
   query GetCurrentUser {
     getCurrentUser {
-      id
-      email
-      name
-      role
-      createdAt
-      auth0Id
-      autoGeoAlerts
-      isInPerimeter
+      ...UserFields
     }
   }
 `;
 
 export const GET_ALL_USERS = gql`
+  ${USER_FRAGMENT}
   query GetAllUsers {
     getAllUsers {
-      id
-      email
-      name
-      role
-      createdAt
-      auth0Id
-      autoGeoAlerts
-      isInPerimeter
+      ...UserFields
     }
   }
 `;
 
 // User Mutations
 export const CREATE_OR_UPDATE_USER = gql`
+  ${USER_FRAGMENT}
   mutation CreateOrUpdateUser($email: String!, $name: String!, $role: Role!) {
     createOrUpdateUser(email: $email, name: $name, role: $role) {
-      id
-      email
-      name
-      role
-      createdAt
-      auth0Id
-      autoGeoAlerts
-      isInPerimeter
+      ...UserFields
     }
   }
 `;
 
 export const UPDATE_AUTO_GEO = gql`
+  ${USER_FRAGMENT}
   mutation UpdateAutoGeo($enabled: Boolean!) {
     updateAutoGeo(enabled: $enabled) {
-      id
-      email
-      name
-      role
-      createdAt
-      auth0Id
-      autoGeoAlerts
-      isInPerimeter
+      ...UserFields
     }
   }
 `;
@@ -68,7 +57,7 @@ export const CLOCK_IN = gql`
   mutation ClockIn($latitude: Float!, $longitude: Float!, $notes: String) {
     clockIn(latitude: $latitude, longitude: $longitude, notes: $notes) {
       id
-      userId # Added userId
+      userId
       clockInTime
       clockOutTime
       clockInLatitude
@@ -78,8 +67,8 @@ export const CLOCK_IN = gql`
       duration
       notes
       status
-      createdAt # Added createdAt
-      updatedAt # Added updatedAt
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -88,28 +77,29 @@ export const CLOCK_OUT = gql`
   mutation ClockOut($shiftId: String!, $latitude: Float!, $longitude: Float!, $notes: String) {
     clockOut(shiftId: $shiftId, latitude: $latitude, longitude: $longitude, notes: $notes) {
       id
-      userId # Added userId
-      clockInTime # Added clockInTime
+      userId
+      clockInTime
       clockOutTime
-      clockInLatitude # Added clockInLatitude
-      clockInLongitude # Added clockInLongitude
+      clockInLatitude
+      clockInLongitude
       clockOutLatitude
       clockOutLongitude
       duration
-      notes # Added notes
+      notes
       status
-      createdAt # Added createdAt
-      updatedAt # Added updatedAt
+      createdAt
+      updatedAt
     }
   }
 `;
 
 // Shift Queries
 export const GET_USER_SHIFTS = gql`
+  ${USER_FRAGMENT}
   query GetUserShifts($userId: String!) {
     getUserShifts(userId: $userId) {
       id
-      userId # Added userId
+      userId
       clockInTime
       clockOutTime
       clockInLatitude
@@ -119,27 +109,21 @@ export const GET_USER_SHIFTS = gql`
       duration
       notes
       status
-      createdAt # Added createdAt
-      updatedAt # Added updatedAt
+      createdAt
+      updatedAt
       user {
-        id # Added user ID to match schema
-        name
-        email
-        role # Added role to match schema
-        createdAt # Added createdAt to match schema
-        auth0Id # Added auth0Id to match schema
-        autoGeoAlerts # Added autoGeoAlerts
-        isInPerimeter # Added isInPerimeter
+        ...UserFields
       }
     }
   }
 `;
 
 export const GET_ALL_SHIFTS = gql`
+  ${USER_FRAGMENT}
   query GetAllShifts {
     getAllShifts {
       id
-      userId # Added userId
+      userId
       clockInTime
       clockOutTime
       clockInLatitude
@@ -149,17 +133,10 @@ export const GET_ALL_SHIFTS = gql`
       duration
       notes
       status
-      createdAt # Added createdAt
-      updatedAt # Added updatedAt
+      createdAt
+      updatedAt
       user {
-        id
-        name
-        email
-        role 
-        createdAt # Added createdAt to match schema
-        auth0Id # Added auth0Id to match schema
-        autoGeoAlerts # Added autoGeoAlerts
-        isInPerimeter # Added isInPerimeter
+        ...UserFields
       }
     }
   }
@@ -167,6 +144,7 @@ export const GET_ALL_SHIFTS = gql`
 
 // Location Perimeter Queries
 export const GET_LOCATION_PERIMETER = gql`
+  ${USER_FRAGMENT}
   query GetLocationPerimeter {
     getLocationPerimeter {
       id
@@ -177,14 +155,7 @@ export const GET_LOCATION_PERIMETER = gql`
       isActive
       updatedAt
       updatedBy {
-        id # Added user ID to match schema
-        name
-        email
-        role # Added role to match schema
-        createdAt # Added createdAt to match schema
-        auth0Id # Added auth0Id to match schema
-        autoGeoAlerts # Added autoGeoAlerts
-        isInPerimeter # Added isInPerimeter
+        ...UserFields
       }
     }
   }
@@ -192,6 +163,7 @@ export const GET_LOCATION_PERIMETER = gql`
 
 // Location Perimeter Mutations
 export const UPDATE_LOCATION_PERIMETER = gql`
+  ${USER_FRAGMENT}
   mutation UpdateLocationPerimeter(
     $centerLatitude: Float!
     $centerLongitude: Float!
@@ -214,14 +186,7 @@ export const UPDATE_LOCATION_PERIMETER = gql`
       isActive
       updatedAt
       updatedBy {
-        id # Added user ID to match schema
-        name
-        email
-        role # Added role to match schema
-        createdAt # Added createdAt to match schema
-        auth0Id # Added auth0Id to match schema
-        autoGeoAlerts # Added autoGeoAlerts
-        isInPerimeter # Added isInPerimeter
+        ...UserFields
       }
     }
   }

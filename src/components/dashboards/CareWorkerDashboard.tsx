@@ -14,8 +14,7 @@ import {
 
   DatePicker,
 
-  message,
-  Switch
+  message
 } from "antd"
 import { CloseOutline, MoreOutline, SearchOutline } from 'antd-mobile-icons'
 import {
@@ -40,7 +39,6 @@ import UserButton from "../UserButton";
 import Image from "next/image";
 import Logo from "../../../public/logo.png"
 import DashboardNavBar from "./NavBar";
-import { useAutoGeoAlerts } from "@/hooks/useAutoGeoAlerts"
 
 const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
@@ -57,7 +55,6 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [messageApi, contextHolder] = message.useMessage();
   const [activeKey, setActiveKey] = useState<'clock' | 'history'>('clock');
-  const { autoEnabled, toggleAutoGeo } = useAutoGeoAlerts()
 
 
   const {
@@ -310,10 +307,6 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
       <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
         {/* Main content area */}
       <DashboardNavBar />
-      <Space align="center" style={{ padding: 16 }}>
-        <Switch checked={autoEnabled} onChange={toggleAutoGeo} />
-        <Text>Enable Automatic Location Alerts</Text>
-      </Space>
 
         <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
           {activeKey === 'clock' ? <ClockScreen currentShift={currentShift}

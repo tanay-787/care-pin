@@ -1,10 +1,11 @@
 'use client';
 
-import { Dropdown, Button, Avatar, Typography, Space } from 'antd';
+import { Dropdown, Button, Avatar, Typography, Space, Switch } from 'antd';
 import type { MenuProps } from 'antd';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useUser } from '@auth0/nextjs-auth0'; // To get the authenticated Auth0 user
 import Link from 'next/link'; // For navigation links (if needed)
+import { useAutoGeoAlerts } from '@/hooks/useAutoGeoAlerts';
 
 const { Text } = Typography;
 
@@ -14,6 +15,7 @@ interface UserButtonProps{
 
 const UserButton: React.FC<UserButtonProps> = ({ size = 'default'}) => {
   const { user, error, isLoading } = useUser(); // Get the authenticated Auth0 user
+  const { autoEnabled, toggleAutoGeo, contextHolder } = useAutoGeoAlerts();
   
   if (isLoading) {
     // Optional: Show a loading state while fetching user
@@ -54,6 +56,18 @@ const UserButton: React.FC<UserButtonProps> = ({ size = 'default'}) => {
       type: 'divider',
     },
     {
+      key: 'auto-geo',
+      label: (
+        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: '160px' }}>
+          <Text>Auto Alerts</Text>
+          <Switch size="small" checked={autoEnabled} onChange={toggleAutoGeo} />
+        </div>
+      ),
+    },
+    {
+      type: 'divider',
+    },
+    {
       key: 'logout',
       icon: <LogoutOutlined style={{ color: 'red' }} />,
       danger: true,
@@ -62,9 +76,12 @@ const UserButton: React.FC<UserButtonProps> = ({ size = 'default'}) => {
   ];
 
   return (
-    <Dropdown menu={{ items }} placement="bottomRight" arrow>
-      <Button type="text" size='large' shape="circle" icon={user.picture ? <Avatar size={size} src={user.picture} /> : <Avatar size={size} icon={<UserOutlined />}>{initials}</Avatar>} />
-    </Dropdown>
+    <>
+      {contextHolder}
+      <Dropdown menu={{ items }} placement="bottomRight" arrow>
+        <Button type="text" size='large' shape="circle" icon={user.picture ? <Avatar size={size} src={user.picture} /> : <Avatar size={size} icon={<UserOutlined />}>{initials}</Avatar>} />
+      </Dropdown>
+    </>
   );
 };
 

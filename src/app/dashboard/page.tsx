@@ -1,26 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useQuery, useMutation } from "@apollo/client"
 import AuthGuard from "@/components/AuthGuard"
 import ManagerDashboard from "@/components/dashboards/ManagerDashboard"
 import CareWorkerDashboard from "@/components/dashboards/CareWorkerDashboard"
-
-
-export interface User {
-  id: string
-  email: string
-  name: string
-  role?: "MANAGER" | "CARE_WORKER"
-}
-
-const appTheme = {
-  token: {
-    colorPrimary: "#1890ff",
-    borderRadius: 8,
-  },
-}
-
+import { User } from "@/lib/types"
 
 const DashboardPage: React.FC = () => {
   return (

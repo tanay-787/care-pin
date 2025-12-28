@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
+import { message } from "antd";
 import {
   GET_CURRENT_USER,
   TRIGGER_GEO,
@@ -13,9 +14,9 @@ interface UserLocation {
 }
 
 export function useAutoGeoAlerts() {
+  const [messageApi, contextHolder] = message.useMessage();
   const { data } = useQuery(GET_CURRENT_USER);
-  // const autoEnabled = data?.getCurrentUser?.autoGeoAlerts ;
-  const autoEnabled = true ;
+  const autoEnabled = data?.getCurrentUser?.autoGeoAlerts ?? false;
 
   const [location, setLocation] = useState<UserLocation | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -70,8 +71,16 @@ export function useAutoGeoAlerts() {
   }, [autoEnabled, triggerGeo]);
 
   const toggleAutoGeo = (enabled: boolean) => {
-    updateAutoGeo({ variables: { enabled } }).catch(console.error);
+    updateAutoGeo({
+      variables: { enabled },
+      onCompleted: () => {
+        messageApi.success(`Location alerts ${enabled ? "enabled" : "disabled"}`);
+      },
+    }).catch((err) => {
+      console.error(err);
+      messageApi.error("Failed to update alert settings");
+    });
   };
 
-  return { autoEnabled, toggleAutoGeo, location, locationLoading };
+  return { autoEnabled, toggleAutoGeo, location, locationLoading, contextHolder };
 }
