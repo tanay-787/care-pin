@@ -48,8 +48,8 @@ export default function ClockMap({
     <div
       style={{
         width: "100%",
-        height: "60dvh",
-        borderRadius: "12px",
+        height: "100%",
+        borderRadius: "0",
         overflow: "hidden",
       }}
     >

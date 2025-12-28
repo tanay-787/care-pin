@@ -308,7 +308,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
         {/* Main content area */}
       <DashboardNavBar />
 
-        <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+        <div style={{ flex: 1, overflow: 'auto', padding: activeKey === 'clock' ? 0 : 16 }}>
           {activeKey === 'clock' ? <ClockScreen currentShift={currentShift}
             clockLoading={clockLoading}
             perimeter={perimeter}
