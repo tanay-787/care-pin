@@ -1,8 +1,9 @@
 'use client';
 
-import { Dropdown, Menu, Button, Avatar, AvatarProps, Typography, Space } from 'antd';
+import { Dropdown, Button, Avatar, Typography, Space } from 'antd';
+import type { MenuProps } from 'antd';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
-import { useUser } from '@auth0/nextjs-auth0'; // To get the Auth0 user
+import { useUser } from '@auth0/nextjs-auth0'; // To get the authenticated Auth0 user
 import Link from 'next/link'; // For navigation links (if needed)
 
 const { Text } = Typography;
@@ -35,10 +36,11 @@ const UserButton: React.FC<UserButtonProps> = ({ size = 'default'}) => {
     ? user.email[0].toUpperCase()
     : '?';
 
-  const menu = (
-    <Menu>
-      {/* User Info Item */}
-      <Menu.Item key="user-info" disabled> {/* Disable this item as it's just info */}
+  const items: MenuProps['items'] = [
+    {
+      key: 'user-info',
+      disabled: true,
+      label: (
         <Space>
           <Avatar size={'large'} icon={<UserOutlined />} src={user.picture}>{initials}</Avatar> {/* Use user.picture for profile image if available */}
           <div>
@@ -46,24 +48,21 @@ const UserButton: React.FC<UserButtonProps> = ({ size = 'default'}) => {
             {user.email && <Text type="secondary" style={{ display: 'block' }}>{user.email}</Text>} {/* Display email if available */}
           </div>
         </Space>
-      </Menu.Item>
-
-      <Menu.Divider /> {/* Separator */}
-
-      {/* Example Menu Items (Customize as needed) */}
-      {/* <Menu.Item key="theme">Theme</Menu.Item> */}
-      {/* <Menu.Item key="billing">Billing</Menu.Item> */}
-      {/* <Menu.Item key="settings">Settings</Menu.Item> */}
-
-      {/* Logout Item */}
-      <Menu.Item key="logout" icon={<LogoutOutlined style={{ color: 'red' }} />} danger>
-        <Link href="/auth/logout">Logout</Link> {/* Link to your Auth0 logout route */}
-      </Menu.Item>
-    </Menu>
-  );
+      ),
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined style={{ color: 'red' }} />,
+      danger: true,
+      label: <Link href="/auth/logout">Logout</Link>, // Link to your Auth0 logout route
+    },
+  ];
 
   return (
-    <Dropdown overlay={menu} placement="bottomRight" arrow>
+    <Dropdown menu={{ items }} placement="bottomRight" arrow>
       <Button type="text" size='large' shape="circle" icon={user.picture ? <Avatar size={size} src={user.picture} /> : <Avatar size={size} icon={<UserOutlined />}>{initials}</Avatar>} />
     </Dropdown>
   );

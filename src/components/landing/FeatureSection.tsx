@@ -19,7 +19,6 @@ import FeatureTwo from "../../../public/feature-two.png";
 import FeatureThree from "../../../public/feature-three.png";
 
 const { Title, Paragraph, Text } = Typography
-const { Panel } = Collapse
 
 export type Feature = {
   id: string
@@ -44,6 +43,56 @@ export default function FeatureSection({
 
   const activeFeature = features.find((f) => f.id === activeKey) || features[0]
 
+  const items = features.map((f, idx) => ({
+    key: f.id,
+    label: (
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: "50%",
+            background: "#1890ff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            fontWeight: 600,
+          }}
+        >
+          {String(idx + 1).padStart(2, "0")}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+          <div>
+            <Text style={{ color: "white", fontSize: 16, fontWeight: 600 }}>{f.title}</Text>
+          </div>
+        </div>
+      </div>
+    ),
+    children: (
+      <div style={{ padding: 6 }}>
+        <Paragraph style={{ color: "rgba(255,255,255,0.9)", marginBottom: 8 }}>{f.description}</Paragraph>
+        {f.bullets && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {f.bullets.map((b, i) => (
+              <Text key={i} style={{ color: "rgba(255,255,255,0.9)" }}>
+                ✓ {b}
+              </Text>
+            ))}
+          </div>
+        )}
+      </div>
+    ),
+    extra: activeKey === f.id ? <DownOutlined style={{ color: "rgba(255,255,255,0.85)" }} /> : <RightOutlined style={{ color: "rgba(255,255,255,0.7)" }} />,
+    style: {
+      background: activeKey === f.id ? "rgba(255,255,255,0.04)" : "transparent",
+      borderRadius: 12,
+      padding: 8,
+      marginBottom: 12,
+    },
+    showArrow: false,
+  }))
+
   return (
     <section style={{ background: "#001529", padding: "72px 16px", color: "white" }}>
       <div style={{ maxWidth: 1120, margin: "0 auto" }}>
@@ -64,65 +113,14 @@ export default function FeatureSection({
               bordered={false}
               style={{ background: "transparent" }}
               expandIconPosition="end"
-            >
-              {features.map((f, idx) => (
-                <Panel
-                  header={
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div
-                        style={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: "50%",
-                          background: "#1890ff",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "white",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {String(idx + 1).padStart(2, "0")}
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                        <div>
-                          <Text style={{ color: "white", fontSize: 16, fontWeight: 600 }}>{f.title}</Text>
-                        </div>
-                      </div>
-                    </div>
-                  }
-                  key={f.id}
-                  extra={activeKey === f.id ? <DownOutlined style={{ color: "rgba(255,255,255,0.85)" }} /> : <RightOutlined style={{ color: "rgba(255,255,255,0.7)" }} />}
-                  style={{
-                    background: activeKey === f.id ? "rgba(255,255,255,0.04)" : "transparent",
-                    borderRadius: 12,
-                    padding: 8,
-                    marginBottom: 12,
-                  }}
-                  showArrow={false}
-                >
-                  <div style={{ padding: 6 }}>
-                    <Paragraph style={{ color: "rgba(255,255,255,0.9)", marginBottom: 8 }}>{f.description}</Paragraph>
-                    {f.bullets && (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        {f.bullets.map((b, i) => (
-                          <Text key={i} style={{ color: "rgba(255,255,255,0.9)" }}>
-                            ✓ {b}
-                          </Text>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </Panel>
-              ))}
-            </Collapse>
+              items={items}
+            />
           </Col>
 
           <Col xs={{ span: 24, order: 1 }} lg={{ span: 12, order: 2 }}>
             <Card
               variant="borderless"
-              bodyStyle={{ padding: 12 }}
-              style={{ borderRadius: 16, background: "rgba(255,255,255,0.03)" }}
+              style={{ padding: 12, borderRadius: 16, background: "rgba(255,255,255,0.03)" }}
             >
               <div style={{ position: "relative", width: "100%", height: 0, paddingBottom: "75%", overflow: "hidden", borderRadius: 12 }}>
                 <AnimatePresence mode="wait">

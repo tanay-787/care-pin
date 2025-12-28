@@ -23,7 +23,7 @@ export default function HeroSection({ user }: HeroSectionProps) {
             <Title
               level={1}
               style={{
-                fontSize: "clamp(2.5rem, 1rem + 8vw, 4.5rem);", // responsive scaling
+                fontSize: "clamp(2.5rem, 1rem + 8vw, 4.5rem)", // responsive scaling
                 lineHeight: "1.1", // Golden ratio for readability
                 color: "#1a1a1a",
                 fontWeight: 700,
