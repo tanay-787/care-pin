@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { message } from "antd";
 import {
@@ -21,7 +21,7 @@ export function useAutoGeoAlerts() {
   const [location, setLocation] = useState<UserLocation | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
 
-  const [lastTriggerTime, setLastTriggerTime] = useState(0);
+  const lastTriggerTimeRef = useRef(0);
   const [triggerGeo] = useMutation(TRIGGER_GEO);
   const [updateAutoGeo] = useMutation(UPDATE_AUTO_GEO, {
     update(cache, { data: { updateAutoGeo } }) {
@@ -50,11 +50,11 @@ export function useAutoGeoAlerts() {
           const currentTime = Date.now();
           const fiveMinutes = 5 * 60 * 1000;
 
-          if (currentTime - lastTriggerTime > fiveMinutes) {
- triggerGeo({
- variables: { latitude: coords.latitude, longitude: coords.longitude },
- }).catch(console.error);
- setLastTriggerTime(currentTime);
+          if (currentTime - lastTriggerTimeRef.current > fiveMinutes) {
+            triggerGeo({
+              variables: { latitude: coords.latitude, longitude: coords.longitude },
+            }).catch(console.error);
+            lastTriggerTimeRef.current = currentTime;
           }
         },
         (err) => {

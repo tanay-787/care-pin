@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button, DotLoading } from "antd-mobile";
 import { ClockCircleOutline } from "antd-mobile-icons";
 import type { Shift } from "@/lib/types";
@@ -33,6 +33,16 @@ export default function ClockScreen({
   handleClockAction,
 }: ClockScreenProps) {
   const { location, locationLoading } = useAutoGeoAlerts();
+  const [showPerimeterError, setShowPerimeterError] = useState(false);
+
+  const handleButtonClick = () => {
+    if (perimeter?.isActive && !isWithinPerimeter()) {
+      setShowPerimeterError(true);
+      return;
+    }
+    setShowPerimeterError(false);
+    handleClockAction(currentShift ? "out" : "in");
+  };
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
@@ -66,7 +76,7 @@ export default function ClockScreen({
       {/* Layer 2: Overlay Controls */}
       <div style={{
         position: "absolute",
-        bottom: 24,
+        bottom: 0,
         left: 16,
         right: 16,
         zIndex: 10,
@@ -81,6 +91,8 @@ export default function ClockScreen({
           background: "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(10px)",
           borderRadius: 24,
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
           padding: 24,
           width: "100%",
           maxWidth: 400,
@@ -95,13 +107,15 @@ export default function ClockScreen({
             <div style={{ marginBottom: 16, color: "#666", display: 'flex', alignItems: 'center', gap: 8 }}>
               <DotLoading /> Getting your location...
             </div>
-          ) : !isWithinPerimeter() && perimeter?.isActive ? (
+          ) : showPerimeterError ? (
             <div style={{ marginBottom: 16, color: "#ff4d4f", fontSize: 14, fontWeight: 500, textAlign: 'center' }}>
               You are outside the work zone.
             </div>
-          ) : (
-             <div style={{ marginBottom: 16, color: "#52c41a", fontSize: 14, fontWeight: 500 }}>
-                You are in the work zone
+          ) : null}
+
+{currentShift && (
+             <div style={{ marginBottom: 12, fontSize: 13, color: '#666' }}>
+                 Shift started at {new Date(parseInt(currentShift.clockInTime)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
              </div>
           )}
 
@@ -109,11 +123,11 @@ export default function ClockScreen({
           <Button
             color={currentShift ? "danger" : "primary"}
             loading={clockLoading}
-            onClick={() => handleClockAction(currentShift ? "out" : "in")}
-            disabled={!isWithinPerimeter() || locationLoading}
+            onClick={handleButtonClick}
+            disabled={locationLoading}
             style={{
               width: "100%",
-              height: 56,
+              height: '3.8rem',
               fontSize: 18,
               fontWeight: 600,
               borderRadius: 28,
@@ -130,12 +144,12 @@ export default function ClockScreen({
               </div>
             )}
           </Button>
-
+{/* 
           {currentShift && (
              <div style={{ marginTop: 12, fontSize: 13, color: '#666' }}>
                  Shift started at {new Date(parseInt(currentShift.clockInTime)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
              </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>

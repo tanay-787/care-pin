@@ -1,16 +1,9 @@
 "use client";
 
-import { MapContainer, TileLayer, Circle, Marker } from "react-leaflet";
+import { useMemo, useEffect } from "react";
+import { MapContainer, TileLayer, Circle, Marker, useMap } from "react-leaflet";
 import L, { LatLngExpression } from "leaflet";
-import "leaflet/dist/leaflet.css";
-
-// Fix default Leaflet marker icons in Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
-});
+import LeafletSetup from "@/components/LeafletSetup";
 
 interface ClockMapProps {
   userLat: number;
@@ -20,6 +13,16 @@ interface ClockMapProps {
   radius: number; // in km
 }
 
+function MapRecenter({ center }: { center: LatLngExpression }) {
+  const map = useMap();
+
+  useEffect(() => {
+    map.setView(center, map.getZoom());
+  }, [center, map]);
+
+  return null;
+}
+
 export default function ClockMap({
   userLat,
   userLng,
@@ -27,11 +30,11 @@ export default function ClockMap({
   perimeterLng,
   radius,
 }: ClockMapProps) {
-  const userPos: LatLngExpression = [userLat, userLng];
-  const perimeterPos: LatLngExpression = [perimeterLat, perimeterLng];
+  const userPos: LatLngExpression = useMemo(() => [userLat, userLng], [userLat, userLng]);
+  const perimeterPos: LatLngExpression = useMemo(() => [perimeterLat, perimeterLng], [perimeterLat, perimeterLng]);
 
   // Custom "blue dot" marker for user location
-  const userIcon = L.divIcon({
+  const userIcon = useMemo(() => L.divIcon({
     html: `<div style="
       width: 14px;
       height: 14px;
@@ -42,7 +45,7 @@ export default function ClockMap({
     "></div>`,
     className: "",
     iconSize: [14, 14],
-  });
+  }), []);
 
   return (
     <div
@@ -53,6 +56,7 @@ export default function ClockMap({
         overflow: "hidden",
       }}
     >
+      <LeafletSetup />
       <MapContainer
         center={perimeterPos}
         zoom={16}
@@ -62,6 +66,7 @@ export default function ClockMap({
         doubleClickZoom={true}
         zoomControl={true}
       >
+        <MapRecenter center={perimeterPos} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -79,7 +84,6 @@ export default function ClockMap({
         />
 
         {/* User Location */}
-        
         <Marker position={userPos} icon={userIcon} />
       </MapContainer>
     </div>

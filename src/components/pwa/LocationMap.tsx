@@ -7,15 +7,7 @@ import "leaflet/dist/leaflet.css";
 import { Input, List, Spin } from "antd";
 import { getAddressFromCoords } from "@/lib/get-address";
 import { useMap } from "react-leaflet";
-
-
-// Fix marker icons in Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
-});
+import LeafletSetup from "@/components/LeafletSetup";
 
 interface LocationMapProps {
   centerLat: number;
@@ -62,19 +54,25 @@ export default function LocationMap({
 
   
   useEffect(() => {
-    setCenter([centerLat, centerLng]);
+    setCenter((prev) => {
+      const [prevLat, prevLng] = prev as [number, number];
+      if (prevLat === centerLat && prevLng === centerLng) return prev;
+      return [centerLat, centerLng];
+    });
     setCircleRadius(radius * 1000);
   }, [centerLat, centerLng, radius]);
 
   //Fetch address for given coords
+  // Extract primitives to avoid unnecessary effects from array reference changes
+  const [currentLat, currentLng] = center as [number, number];
+
   useEffect(() => {
     const fetchAddr = async () => {
-      const [lat, lng] = center as [number, number];
-      const addr = await getAddressFromCoords(lat, lng);
+      const addr = await getAddressFromCoords(currentLat, currentLng);
       setAddress(addr);
     };
     fetchAddr();
-  }, [center]);
+  }, [currentLat, currentLng]);
 
 
   const handleMarkerDragEnd = async () => {
@@ -144,6 +142,7 @@ export default function LocationMap({
         position: "relative",
       }}
     >
+      <LeafletSetup />
       {/* 🔍 Search Bar */}
       {editable && (
         <div style={{ position: "absolute", top: 10, left: 50, right: 10, zIndex: 1000 }}>
