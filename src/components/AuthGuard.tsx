@@ -115,95 +115,98 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ managerDashboard, careWorkerDashb
   if (auth0Error) {
       console.error('Auth0 Authentication error:', auth0Error);
       return (
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f2f5" }}>
           <Result
-              
               status="error"
               title="Authentication Error"
               subTitle={auth0Error.message}
               extra={<Button type="primary" onClick={() => router.push('/auth/login')}>Try Login Again</Button>}
           />
+        </div>
       );
   }
 
   // If authenticated via Auth0 but user data is not loaded or role is missing, show the modal
   if (auth0User && showRoleSelectionModal) {
     return (
-      <Modal
-        title={
-          <Space>
-            <UserOutlined />
-            <span>Choose Your Role</span>
-          </Space>
-        }
-        open={showRoleSelectionModal} // Use the state variable here
-        onOk={handleSetRole} // Use the handler here
-        okText="Continue"
-        okButtonProps={{
-          loading: updateRoleLoading, // Use mutation loading state
-          disabled: !selectedRole || updateRoleLoading, // Disable if no role selected or loading
-        }}
-        closable={false}
-        maskClosable={false}
-        keyboard={false}
-        width={500}
-        centered
-      >
-        <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          <Paragraph style={{ fontSize: 16, textAlign: "center", margin: 0 }}>
-            Welcome! Please select your role to access the appropriate dashboard.
-          </Paragraph>
-
-          <Radio.Group value={selectedRole} onChange={handleRoleSelect} style={{ width: "100%" }}>
-            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-              <Card
-                style={{
-                  cursor: "pointer",
-                  border: selectedRole === "MANAGER" ? "2px solid #1890ff" : "1px solid #d9d9d9",
-                }}
-                onClick={() => setSelectedRole("MANAGER")} // Set state on card click
-              >
-                <Radio value="MANAGER" style={{ marginBottom: 8 }}>
-                  <Space>
-                    <CrownOutlined style={{ color: "#1890ff" }} />
-                    <Text strong style={{ fontSize: 16 }}>
-                      Manager
-                    </Text>
-                  </Space>
-                </Radio>
-                <Paragraph type="secondary" style={{ margin: 0, paddingLeft: 24 }}>
-                  Access staff management, analytics, location settings, and shift logs
-                </Paragraph>
-              </Card>
-
-              <Card
-                style={{
-                  cursor: "pointer",
-                  border: selectedRole === "CARE_WORKER" ? "2px solid #1890ff" : "1px solid #d9d9d9",
-                }}
-                onClick={() => setSelectedRole("CARE_WORKER")} // Set state on card click
-              >
-                <Radio value="CARE_WORKER" style={{ marginBottom: 8 }}>
-                  <Space>
-                    <UserOutlined style={{ color: "#52c41a" }} />
-                    <Text strong style={{ fontSize: 16 }}>
-                      Care Worker
-                    </Text>
-                  </Space>
-                </Radio>
-                <Paragraph type="secondary" style={{ margin: 0, paddingLeft: 24 }}>
-                  Clock in/out, track shifts, view your work history, and manage your schedule
-                </Paragraph>
-              </Card>
+      <div style={{ minHeight: "100vh", background: "#f0f2f5" }}>
+        <Modal
+          title={
+            <Space>
+              <UserOutlined />
+              <span>Choose Your Role</span>
             </Space>
-          </Radio.Group>
+          }
+          open={showRoleSelectionModal} // Use the state variable here
+          onOk={handleSetRole} // Use the handler here
+          okText="Continue"
+          okButtonProps={{
+            loading: updateRoleLoading, // Use mutation loading state
+            disabled: !selectedRole || updateRoleLoading, // Disable if no role selected or loading
+          }}
+          closable={false}
+          maskClosable={false}
+          keyboard={false}
+          width={500}
+          centered
+        >
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
+            <Paragraph style={{ fontSize: 16, textAlign: "center", margin: 0 }}>
+              Welcome! Please select your role to access the appropriate dashboard.
+            </Paragraph>
 
-          <Alert
-            message="Note: You can contact your administrator if you need to change your role later."
-            type="info"
-            showIcon
-          />
-        </Space>
-      </Modal>
+            <Radio.Group value={selectedRole} onChange={handleRoleSelect} style={{ width: "100%" }}>
+              <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+                <Card
+                  style={{
+                    cursor: "pointer",
+                    border: selectedRole === "MANAGER" ? "2px solid #1890ff" : "1px solid #d9d9d9",
+                  }}
+                  onClick={() => setSelectedRole("MANAGER")} // Set state on card click
+                >
+                  <Radio value="MANAGER" style={{ marginBottom: 8 }}>
+                    <Space>
+                      <CrownOutlined style={{ color: "#1890ff" }} />
+                      <Text strong style={{ fontSize: 16 }}>
+                        Manager
+                      </Text>
+                    </Space>
+                  </Radio>
+                  <Paragraph type="secondary" style={{ margin: 0, paddingLeft: 24 }}>
+                    Access staff management, analytics, location settings, and shift logs
+                  </Paragraph>
+                </Card>
+
+                <Card
+                  style={{
+                    cursor: "pointer",
+                    border: selectedRole === "CARE_WORKER" ? "2px solid #1890ff" : "1px solid #d9d9d9",
+                  }}
+                  onClick={() => setSelectedRole("CARE_WORKER")} // Set state on card click
+                >
+                  <Radio value="CARE_WORKER" style={{ marginBottom: 8 }}>
+                    <Space>
+                      <UserOutlined style={{ color: "#52c41a" }} />
+                      <Text strong style={{ fontSize: 16 }}>
+                        Care Worker
+                      </Text>
+                    </Space>
+                  </Radio>
+                  <Paragraph type="secondary" style={{ margin: 0, paddingLeft: 24 }}>
+                    Clock in/out, track shifts, view your work history, and manage your schedule
+                  </Paragraph>
+                </Card>
+              </Space>
+            </Radio.Group>
+
+            <Alert
+              message="Note: You can contact your administrator if you need to change your role later."
+              type="info"
+              showIcon
+            />
+          </Space>
+        </Modal>
+      </div>
     );
   }
 
@@ -222,12 +225,14 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ managerDashboard, careWorkerDashb
   // Handle case where authenticated but not authorized based on database role
    if (auth0User && !isAuthorized && currentUserData?.getCurrentUser) {
      return (
-        <Result
-          status="403"
-          title="Access Denied"
-          subTitle="You do not have the necessary role to access this page."
-          extra={<Button type="primary" onClick={() => router.push('/')}>Back Home</Button>} // Or logout
-        />
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f2f5" }}>
+          <Result
+            status="403"
+            title="Access Denied"
+            subTitle="You do not have the necessary role to access this page."
+            extra={<Button type="primary" onClick={() => router.push('/')}>Back Home</Button>} // Or logout
+          />
+        </div>
      );
   }
 
