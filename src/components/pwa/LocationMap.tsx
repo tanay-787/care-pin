@@ -226,9 +226,9 @@ export default function LocationMap({
           </label>
           <input
             type="range"
-            min={500}
+            min={100}
             max={20000}
-            step={500}
+            step={100}
             value={circleRadius}
             onChange={(e) => handleRadiusChange(parseInt(e.target.value))}
             className="w-2/3"

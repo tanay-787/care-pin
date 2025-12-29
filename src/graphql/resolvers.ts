@@ -199,7 +199,7 @@ export const resolvers = {
       {
         centerLatitude,
         centerLongitude,
-        radiusKm,
+        radiusKm = 0.7,
         address,
         isActive,
       }: {

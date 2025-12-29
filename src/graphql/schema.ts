@@ -65,7 +65,7 @@ export const typeDefs = /* GraphQL */ `
     updateLocationPerimeter(
       centerLatitude: Float!
       centerLongitude: Float!
-      radiusKm: Float!
+      radiusKm: Float! = 0.7
       address: String!
       isActive: Boolean!
     ): LocationPerimeter!

@@ -66,12 +66,12 @@ const LocationSettingsTab: FC<LocationSettingsTabProps> = ({ perimeterSettings, 
         <Form
           form={form}
           layout="vertical"
-          initialValues={{ centerLat: 19.076, centerLng: 72.8777, radius: 2 }}
+          initialValues={{ centerLat: 19.076, centerLng: 72.8777, radius: 0.7 }}
           onFinish={onUpdatePerimeter}
         >
           <Row gutter={24}>
             <Col xs={24} md={12}>
-              <LocationMap centerLat={19.076} centerLng={72.8777} radius={2} editable onChange={(newCenter, newRadius, newAddress) => {
+              <LocationMap centerLat={19.076} centerLng={72.8777} radius={0.7} editable onChange={(newCenter, newRadius, newAddress) => {
                 form.setFieldsValue({
                   centerLat: newCenter.lat,
                   centerLng: newCenter.lng,
@@ -84,7 +84,7 @@ const LocationSettingsTab: FC<LocationSettingsTabProps> = ({ perimeterSettings, 
               <Card size="small" title="New Perimeter">
                 <Space direction="vertical" style={{ width: "100%" }}>
                   <Text type="secondary">Drag the marker to set location</Text>
-                  <Form.Item name="radius" label="Radius (km)"><InputNumber min={0.5} max={20} step={0.5} /></Form.Item>
+                  <Form.Item name="radius" label="Radius (km)"><InputNumber min={0.1} max={20} step={0.1} /></Form.Item>
                   <Form.Item name="centerAddress" label="Center Address"><Input readOnly /></Form.Item>
                   <Form.Item name="centerLat" hidden><Input type="hidden" /></Form.Item>
                   <Form.Item name="centerLng" hidden><Input type="hidden" /></Form.Item>
