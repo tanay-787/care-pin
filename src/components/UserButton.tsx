@@ -52,7 +52,7 @@ const UserButton: React.FC<UserButtonProps> = ({ size = 'default'}) => {
         <Space>
           <Avatar size={'large'} icon={<UserOutlined />} src={user.picture}>{initials}</Avatar> {/* Use user.picture for profile image if available */}
           <div>
-            <Text strong>{user.name || user.email}</Text> {/* Display name or email */}
+            <Text strong>{user.userName || user.email}</Text> {/* Display name or email */}
             {user.email && <Text type="secondary" style={{ display: 'block' }}>{user.email}</Text>} {/* Display email if available */}
           </div>
         </Space>

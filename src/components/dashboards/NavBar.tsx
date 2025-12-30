@@ -1,6 +1,5 @@
 "use client"
-import React from 'react';
-import { useRouter } from "next/navigation"
+
 import Image from "next/image";
 import { NavBar, Space } from 'antd-mobile';
 import { Typography} from 'antd';
@@ -18,15 +17,15 @@ const right = (
     </div>
   )
 
-const DashboardNavBar: React.FC = () => {
-    const router = useRouter();
+interface DashboardNavBarProps {
+    backIcon?: React.ReactNode;
+    onBack?: () => void;
+}
 
-    const back = () => router.push("/");
-
-
+const DashboardNavBar: React.FC<DashboardNavBarProps> = ({ backIcon, onBack }) => {
     return (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: 16}}>
-    <NavBar right={right} onBack={back} style={{ width: "100%" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "0 16px", width: "100%" }}>
+    <NavBar right={right} backIcon={backIcon} onBack={onBack} style={{ width: "100%" }}>
         <Space align="baseline" style={{ paddingTop: "6px" }}>
             <Image
                 src={Logo}

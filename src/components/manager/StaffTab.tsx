@@ -1,10 +1,11 @@
 "use client";
 
 import { FC } from "react";
-import { Card, Table, Typography, Tag, Button, Space } from "antd";
+import { Card, Table, Typography, Tag, Button, Space, Grid } from "antd";
 import type { User } from "@/lib/types";
 
 const { Text } = Typography;
+const { useBreakpoint } = Grid;
 
 interface StaffTabProps {
   users: User[];
@@ -12,13 +13,21 @@ interface StaffTabProps {
 }
 
 const StaffTab: FC<StaffTabProps> = ({ users, onViewWorkerLogs }) => {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
   return (
-    <Card title="Staff Management">
+    <Card 
+      title="Staff Management" 
+      size={isMobile ? "small" : "default"}
+      styles={{ body: { padding: isMobile ? 0 : "24px" } }}
+    >
       <Table
         dataSource={users}
         rowKey="id"
-        pagination={{ pageSize: 4 }}
-        scroll={{ x: true }}
+        pagination={{ pageSize: 4, size: isMobile ? "small" : "default" }}
+        scroll={{ x: "max-content" }}
+        size={isMobile ? "small" : "middle"}
         columns={[
           { title: "Name", dataIndex: "name", render: (name: string) => <Text strong>{name}</Text> },
           { title: "Email", dataIndex: "email" },

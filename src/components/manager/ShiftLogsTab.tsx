@@ -1,10 +1,11 @@
 "use client";
 
 import { FC } from "react";
-import { Card, Table, Typography, Tag, Select, Space } from "antd";
+import { Card, Table, Typography, Tag, Select, Space, Grid } from "antd";
 import type { Shift, User } from "@/lib/types";
 
 const { Text } = Typography;
+const { useBreakpoint } = Grid;
 
 interface ShiftLogsTabProps {
   shifts: Shift[];
@@ -14,12 +15,19 @@ interface ShiftLogsTabProps {
 }
 
 const ShiftLogsTab: FC<ShiftLogsTabProps> = ({ shifts, workers, selectedWorker, onSelectWorker }) => {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
   return (
-    <Card title="All Shift Logs">
-      <Space style={{ marginBottom: 16 }}>
+    <Card 
+      title="All Shift Logs" 
+      size={isMobile ? "small" : "default"}
+      styles={{ body: { padding: isMobile ? 0 : "24px" } }}
+    >
+      <Space style={{ marginBottom: 16, padding: isMobile ? "12px 12px 0" : 0 }}>
         <Select
           placeholder="Filter by worker"
-          style={{ width: 200 }}
+          style={{ width: isMobile ? "100%" : 200 }}
           allowClear
           value={selectedWorker}
           onChange={onSelectWorker}
@@ -33,8 +41,9 @@ const ShiftLogsTab: FC<ShiftLogsTabProps> = ({ shifts, workers, selectedWorker, 
       <Table
         dataSource={shifts.filter((s) => (selectedWorker ? s.user.id === selectedWorker : true))}
         rowKey="id"
-        scroll={{ x: true }}
-        pagination={{ pageSize: 4 }}
+        scroll={{ x: "max-content" }}
+        pagination={{ pageSize: 4, size: isMobile ? "small" : "default" }}
+        size={isMobile ? "small" : "middle"}
         columns={[
           { title: "Worker", dataIndex: "workerName", render: (name: string) => <Text strong>{name}</Text> },
           { title: "Clock In", dataIndex: "clockInTimeFormatted" },

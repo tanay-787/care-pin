@@ -13,9 +13,10 @@ import {
   Modal,
 
   DatePicker,
-
-  message
+  message,
+  Grid
 } from "antd"
+const { useBreakpoint } = Grid;
 import { CloseOutline, MoreOutline, SearchOutline } from 'antd-mobile-icons'
 import {
   ClockCircleOutlined,
@@ -300,6 +301,9 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
   ]
 
 
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
   return (
     <>
       {contextHolder}
@@ -308,7 +312,7 @@ const CareWorkerDashboard = ({ user }: { user: User }) => {
         {/* Main content area */}
       <DashboardNavBar />
 
-        <div style={{ flex: 1, overflow: 'auto', padding: activeKey === 'clock' ? 0 : 16 }}>
+        <div style={{ flex: 1, overflow: 'auto', padding: activeKey === 'clock' ? 0 : (isMobile ? '8px 4px' : 16) }}>
           {activeKey === 'clock' ? <ClockScreen currentShift={currentShift}
             clockLoading={clockLoading}
             perimeter={perimeter}

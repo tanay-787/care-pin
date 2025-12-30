@@ -11,6 +11,8 @@ import {
   DatePicker,
   Spin,
   message,
+  Grid,
+  Button,
 } from 'antd';
 import {
   GET_ALL_USERS,
@@ -26,6 +28,8 @@ import {
   EnvironmentOutlined,
   TeamOutlined,
   BarChartOutlined,
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
 } from '@ant-design/icons';
 import type { User } from '@/lib/types';
 
@@ -37,8 +41,12 @@ import LocationSettingsTab from '@/components/manager/LocationSettingsTab';
 
 const { useForm } = Form;
 const { Header, Content, Footer, Sider } = Layout;
+const { useBreakpoint } = Grid;
 
 const ManagerDashboard = ({ user }: { user: User }) => {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
   const [activeTab, setActiveTab] = useState('overview');
   const [collapsed, setCollapsed] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null);
@@ -182,6 +190,7 @@ const ManagerDashboard = ({ user }: { user: User }) => {
     insetInlineStart: 0,
     top: 0,
     bottom: 0,
+    zIndex: 1000,
   };
 
   if (usersLoading || shiftsLoading || perimeterLoading) {
@@ -285,6 +294,9 @@ const ManagerDashboard = ({ user }: { user: User }) => {
           collapsed={collapsed}
           onCollapse={(value) => setCollapsed(value)}
           style={siderStyle}
+          breakpoint="lg"
+          collapsedWidth={isMobile ? 0 : 80}
+          trigger={isMobile ? null : undefined}
         >
           <div className="demo-logo-vertical" />
           <Menu
@@ -293,15 +305,23 @@ const ManagerDashboard = ({ user }: { user: User }) => {
             defaultSelectedKeys={[activeTab]}
             selectedKeys={[activeTab]}
             items={menuItems}
-            onClick={({ key }) => setActiveTab(key as string)}
+            onClick={({ key }) => {
+              setActiveTab(key as string);
+              if (isMobile) setCollapsed(true);
+            }}
           />
         </Sider>
         <Layout>
-          <DashboardNavBar /> {/* This acts as the Header */}
-          <Content style={{ margin: '24px 16px 0', overflow: 'initial' }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 1, width: '100%', background: colorBgContainer, display: 'flex', alignItems: 'center' }}>
+            <DashboardNavBar 
+              backIcon={isMobile ? (collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />) : null}
+              onBack={isMobile ? () => setCollapsed(!collapsed) : undefined}
+            />
+          </div>
+          <Content style={{ margin: isMobile ? '8px 8px 0' : '24px 16px 0', overflow: 'initial' }}>
             <div
               style={{
-                padding: 24,
+                padding: isMobile ? 12 : 24,
                 minHeight: 360,
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,

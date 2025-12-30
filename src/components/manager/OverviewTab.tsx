@@ -10,6 +10,7 @@ import {
   Tag,
   Typography,
   Button,
+  Grid,
 } from 'antd';
 import {
   UserOutlined,
@@ -21,6 +22,7 @@ import {
 import type { User, Shift } from '@/lib/types';
 
 const { Text } = Typography;
+const { useBreakpoint } = Grid;
 
 interface OverviewTabProps {
   workers: number;
@@ -49,6 +51,8 @@ const OverviewTab: FC<OverviewTabProps> = ({
   isRefreshing,
 }) => {
   const [, setTick] = useState(0);
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -58,46 +62,46 @@ const OverviewTab: FC<OverviewTabProps> = ({
   }, []);
 
   return (
-    <div>
-      <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
+    <div style={{ padding: isMobile ? '0' : '0 8px' }}>
+      <Row gutter={[isMobile ? 8 : 24, isMobile ? 8 : 24]} style={{ marginBottom: isMobile ? 16 : 24 }}>
+        <Col xs={12} sm={12} lg={6}>
+          <Card size="small" styles={{ body: { padding: isMobile ? '8px' : '12px' } }}>
             <Statistic
-              title="Currently Working"
+              title={<span style={{ fontSize: isMobile ? '12px' : '14px' }}>Currently Working</span>}
               value={currentlyWorking.length}
-              prefix={<UserOutlined />}
-              valueStyle={{ color: '#52c41a' }}
+              prefix={<UserOutlined style={{ fontSize: isMobile ? '14px' : '16px' }} />}
+              valueStyle={{ color: '#52c41a', fontSize: isMobile ? '18px' : '24px' }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
+        <Col xs={12} sm={12} lg={6}>
+          <Card size="small" styles={{ body: { padding: isMobile ? '8px' : '12px' } }}>
             <Statistic
-              title="Total Staff"
+              title={<span style={{ fontSize: isMobile ? '12px' : '14px' }}>Total Staff</span>}
               value={workers}
-              prefix={<TeamOutlined />}
-              valueStyle={{ color: '#1890ff' }}
+              prefix={<TeamOutlined style={{ fontSize: isMobile ? '14px' : '16px' }} />}
+              valueStyle={{ color: '#1890ff', fontSize: isMobile ? '18px' : '24px' }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
+        <Col xs={12} sm={12} lg={6}>
+          <Card size="small" styles={{ body: { padding: isMobile ? '8px' : '12px' } }}>
             <Statistic
-              title="Today's Clock-ins"
+              title={<span style={{ fontSize: isMobile ? '12px' : '14px' }}>Today&apos;s Clock-ins</span>}
               value={todayShifts.length}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#722ed1' }}
+              prefix={<ClockCircleOutlined style={{ fontSize: isMobile ? '14px' : '16px' }} />}
+              valueStyle={{ color: '#722ed1', fontSize: isMobile ? '18px' : '24px' }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
+        <Col xs={12} sm={12} lg={6}>
+          <Card size="small" styles={{ body: { padding: isMobile ? '8px' : '12px' } }}>
             <Statistic
-              title="Avg Hours/Day"
+              title={<span style={{ fontSize: isMobile ? '12px' : '14px' }}>Avg Hours/Day</span>}
               value={avgHoursPerDay}
               precision={1}
-              prefix={<HistoryOutlined />}
-              valueStyle={{ color: '#fa8c16' }}
+              prefix={<HistoryOutlined style={{ fontSize: isMobile ? '14px' : '16px' }} />}
+              valueStyle={{ color: '#fa8c16', fontSize: isMobile ? '18px' : '24px' }}
             />
           </Card>
         </Col>
@@ -105,13 +109,16 @@ const OverviewTab: FC<OverviewTabProps> = ({
 
       <Card
         title="Currently Working Staff"
+        size={isMobile ? 'small' : 'default'}
+        styles={{ body: { padding: isMobile ? 0 : '24px' } }}
         extra={
           <Button
             icon={<RedoOutlined />}
             onClick={onRefresh}
             loading={isRefreshing}
+            size={isMobile ? 'small' : 'middle'}
           >
-            Refresh
+            {isMobile ? '' : 'Refresh'}
           </Button>
         }
       >
@@ -123,8 +130,9 @@ const OverviewTab: FC<OverviewTabProps> = ({
             return { ...worker, currentShift };
           })}
           rowKey="id"
-          pagination={{ pageSize: 4 }}
-          scroll={{ x: true }}
+          pagination={{ pageSize: 4, size: isMobile ? 'small' : 'default' }}
+          scroll={{ x: 'max-content' }}
+          size={isMobile ? 'small' : 'middle'}
           columns={[
             {
               title: 'Name',
